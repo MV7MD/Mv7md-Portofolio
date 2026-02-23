@@ -1,6 +1,6 @@
-require('dotenv').config(); // تحميل المتغيرات من ملف .env
+require('dotenv').config(); 
 
-// 🚀 التعديل السحري: إجبار السيرفر على استخدام IPv4 لحل مشكلة Railway مع جوجل
+// 🚀 إجبار السيرفر على استخدام IPv4 أولاً لحل مشكلة الاتصال في Railway
 require('dns').setDefaultResultOrder('ipv4first'); 
 
 const express = require('express');
@@ -19,54 +19,49 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// مسارات ملفات الفرونت إند
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
-// 🔗 الاتصال بقاعدة البيانات
-const DB_URI = process.env.DB_URI;
-
-mongoose.connect(DB_URI, {
+// 🔗 الاتصال بقاعدة البيانات مع مهلة زمنية للمحاولة
+mongoose.connect(process.env.DB_URI, {
     serverSelectionTimeoutMS: 5000 
 })
     .then(() => console.log('✅✅✅ تم الربط بالسحاب بنجاح!'))
     .catch((err) => {
-        console.error('❌ فشل الاتصال بالسحاب. تأكد من إعدادات الـ Environment Variables');
-        console.error('تفاصيل الخطأ:', err.message);
+        console.error('❌ فشل الاتصال بالسحاب:', err.message);
     });
 
-// 🚀 التعديل النهائي للإيميل: استخدام بورت 587 مع إعدادات تخطي حماية الشهادات
+// 🚀 إعدادات Nodemailer المحسنة لـ Railway
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // يجب أن تكون false مع بورت 587
+    secure: false, 
     auth: { 
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS 
     },
     tls: {
-        rejectUnauthorized: false, // للسماح بالاتصال من سيرفرات Railway دون مشاكل SSL
+        rejectUnauthorized: false, // ضروري لتخطي مشاكل الأمان في بيئات الاستضافة
         minVersion: 'TLSv1.2'
     },
-    connectionTimeout: 10000 
+    connectionTimeout: 10000, // 10 ثواني كحد أقصى للاتصال
+    greetingTimeout: 5000,
+    socketTimeout: 15000
 });
 
-// دالة اختبار الإيميل أول ما السيرفر يشتغل
-transporter.verify((error, success) => {
+// اختبار الاتصال فور التشغيل
+transporter.verify((error) => {
     if (error) {
-        console.error('❌ خطأ كارثي في إعدادات الإيميل:', error.message);
+        console.error('❌ خطأ في إعدادات الإيميل:', error.message);
     } else {
         console.log('✅✅✅ سيرفر الإيميلات متصل وجاهز للإرسال!');
     }
 });
 
-// متغيرات الحماية من ملف الـ .env
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD; 
-const SECRET_TOKEN = process.env.SECRET_TOKEN; 
-
+// --- وسيط حماية الأدمن ---
 const verifyAdmin = (req, res, next) => {
     const token = req.headers.authorization;
-    if (token === `Bearer ${SECRET_TOKEN}`) {
+    if (token === `Bearer ${process.env.SECRET_TOKEN}`) {
         next(); 
     } else {
         res.status(401).json({ success: false, message: "غير مصرح لك بالدخول!" }); 
@@ -74,9 +69,8 @@ const verifyAdmin = (req, res, next) => {
 };
 
 app.post('/api/admin/login', (req, res) => {
-    const { password } = req.body;
-    if (password === ADMIN_PASSWORD) {
-        res.json({ success: true, token: SECRET_TOKEN });
+    if (req.body.password === process.env.ADMIN_PASSWORD) {
+        res.json({ success: true, token: process.env.SECRET_TOKEN });
     } else {
         res.status(401).json({ success: false, message: "كلمة المرور خاطئة!" });
     }
@@ -112,88 +106,76 @@ app.get('/api/reviews', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Error" }); }
 });
 
+// إرسال تقييم جديد مع تنبيه بالإيميل
 app.post('/api/reviews', async (req, res) => {
     const { reviewerName, message, rating } = req.body;
     try {
         const newReview = new Review({ reviewerName, message, rating });
         await newReview.save();
+        
         const starsHtml = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        
+        // إرسال الإيميل في الخلفية دون تعطيل الرد على المستخدم
+        transporter.sendMail({
+            from: `"vScout Notifications" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
             subject: `⭐ تقييم جديد معلق من: ${reviewerName}`,
             html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; direction: rtl; text-align: right;">
-                <div style="background-color: #fbbf24; padding: 20px; text-align: center;">
-                    <h2 style="color: #fff; margin: 0; font-size: 24px;">تقييم جديد بانتظار موافقتك! 🌟</h2>
-                </div>
-                <div style="padding: 30px; background-color: #ffffff;">
-                    <p style="font-size: 16px; color: #475569; margin-bottom: 20px;">مرحباً محمد،</p>
-                    <p style="font-size: 16px; color: #475569;">هناك شخص قام للتو بتقييم البورتفوليو الخاص بك. يرجى مراجعة التقييم قبل نشره.</p>
-                    <div style="background-color: #f1f5f9; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                        <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>👤 العميل:</strong> <span style="color: #3b82f6;">${reviewerName}</span></p>
-                        <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>⭐ التقييم:</strong> <span style="font-size: 20px; letter-spacing: 2px;">${starsHtml}</span></p>
-                        <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 15px 0;">
-                        <p style="margin: 0; font-size: 18px; color: #0f172a; font-style: italic;">"${message}"</p>
-                    </div>
-                </div>
-            </div>`
-        });
+                <div dir="rtl" style="font-family: Arial; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                    <h2 style="color: #fbbf24;">تقييم جديد بانتظار موافقتك!</h2>
+                    <p><strong>العميل:</strong> ${reviewerName}</p>
+                    <p><strong>التقييم:</strong> ${starsHtml}</p>
+                    <p style="background: #f9f9f9; padding: 10px; border-right: 4px solid #fbbf24;">"${message}"</p>
+                </div>`
+        }).catch(err => console.error("Email Error:", err.message));
+
         res.json({ success: true });
     } catch (error) { 
-        console.error("❌ Email/Review Error: ", error); 
         res.status(500).json({ success: false }); 
     }
 });
 
+// تواصل معي
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
         await transporter.sendMail({
-            from: process.env.EMAIL_USER, 
+            from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
             replyTo: email, 
             subject: `🚀 رسالة تواصل جديدة من: ${name}`, 
             html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; direction: rtl; text-align: right;">
-                <div style="background-color: #3b82f6; padding: 20px; text-align: center;">
-                    <h2 style="color: #fff; margin: 0; font-size: 24px;">رسالة تواصل جديدة! 📩</h2>
-                </div>
-                <div style="padding: 30px; background-color: #ffffff;">
-                    <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>👤 المرسل:</strong> ${name}</p>
-                    <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>📧 البريد:</strong> ${email}</p>
-                    <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                        <p style="margin: 0; font-size: 16px; color: #0f172a;">${message}</p>
+                <div dir="rtl" style="font-family: Arial; padding: 20px; border: 1px solid #3b82f6; border-radius: 10px;">
+                    <h2 style="color: #3b82f6;">رسالة تواصل جديدة!</h2>
+                    <p><strong>المرسل:</strong> ${name}</p>
+                    <p><strong>البريد:</strong> ${email}</p>
+                    <div style="background: #f0fdf4; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                        ${message}
                     </div>
-                </div>
-            </div>`
+                </div>`
         });
         res.json({ success: true });
     } catch (error) { 
-        console.error("❌ Contact Email Error: ", error); 
+        console.error("❌ Contact Error:", error.message);
         res.status(500).json({ success: false }); 
     }
 });
 
 app.post('/api/visit', async (req, res) => {
     try {
-        let visitInfo = await Visit.findOne({ id: "main_counter" });
-        if (!visitInfo) {
-            visitInfo = new Visit({ id: "main_counter", count: 1 });
-        } else {
-            visitInfo.count += 1;
-        }
-        await visitInfo.save();
+        let visitInfo = await Visit.findOneAndUpdate(
+            { id: "main_counter" },
+            { $inc: { count: 1 } },
+            { upsert: true, new: true }
+        );
         res.json({ success: true, count: visitInfo.count });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
 // --- APIs الأدمن المحمية ---
 app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
-    try {
-        const visitInfo = await Visit.findOne({ id: "main_counter" });
-        res.json({ visits: visitInfo ? visitInfo.count : 0 });
-    } catch (error) { res.status(500).json({ visits: 0 }); }
+    const visitInfo = await Visit.findOne({ id: "main_counter" });
+    res.json({ visits: visitInfo ? visitInfo.count : 0 });
 });
 
 app.get('/api/admin/projects', verifyAdmin, async (req, res) => {

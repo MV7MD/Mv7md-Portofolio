@@ -1,6 +1,6 @@
 require('dotenv').config(); // تحميل المتغيرات من ملف .env
 
-// 🚀 التعديل السحري: إجبار السيرفر على استخدام IPv4 لحل مشكلة Railway
+// 🚀 التعديل السحري: إجبار السيرفر على استخدام IPv4 لحل مشكلة Railway مع جوجل
 require('dns').setDefaultResultOrder('ipv4first'); 
 
 const express = require('express');
@@ -19,11 +19,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// تم التعديل هنا: مسحنا الـ ../ عشان يقرأ الفولدر من نفس المكان
+// مسارات ملفات الفرونت إند
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
-// 🔗 استخدام الرابط من متغيرات البيئة للحماية
+// 🔗 الاتصال بقاعدة البيانات
 const DB_URI = process.env.DB_URI;
 
 mongoose.connect(DB_URI, {
@@ -35,17 +35,17 @@ mongoose.connect(DB_URI, {
         console.error('تفاصيل الخطأ:', err.message);
     });
 
-// 🚀 التعديل الأهم: استخدام بورت 587 لتخطي حماية Railway
+// 🚀 التعديل النهائي للإيميل: استخدام بورت 587 مع إعدادات الـ TLS الصحيحة
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // لازم تكون false مع بورت 587
-    requireTLS: true, // إجبار التشفير عشان جوجل ترضى
+    secure: false, 
+    requireTLS: true, 
     auth: { 
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS 
     },
-    connectionTimeout: 10000 // قطع الاتصال لو جوجل علقت
+    connectionTimeout: 10000 
 });
 
 // دالة اختبار الإيميل أول ما السيرفر يشتغل
@@ -241,7 +241,6 @@ app.put('/api/admin/reviews/:id/home', verifyAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-// تم التعديل هنا: مسحنا الـ ../ واستخدمنا path.join بشكل سليم
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
 });

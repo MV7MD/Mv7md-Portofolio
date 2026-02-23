@@ -1,4 +1,8 @@
 require('dotenv').config(); // تحميل المتغيرات من ملف .env
+
+// 🚀 التعديل السحري: إجبار السيرفر على استخدام IPv4 لحل مشكلة Railway
+require('dns').setDefaultResultOrder('ipv4first'); 
+
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');

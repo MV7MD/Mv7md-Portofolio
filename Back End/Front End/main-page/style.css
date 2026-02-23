@@ -1,9 +1,9 @@
-/* تفعيل الخط الجديد (Alexandria) */
+
 body {
     font-family: 'Alexandria', sans-serif;
 }
 
-/* أنيميشن الطفو المستمر للصورة */
+
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-15px); }
@@ -14,7 +14,7 @@ body {
     animation: float 4s ease-in-out infinite;
 }
 
-/* السوشيال ميديا: ستايل النيون سماوي */
+
 .social-circle {
     width: 3.5rem;
     height: 3.5rem;
@@ -43,7 +43,7 @@ body {
     transform: scale(1.15);
 }
 
-/* الكروت التلجية */
+
 .glass-card {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
@@ -58,7 +58,7 @@ body {
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
 
-/* خانات الإدخال */
+
 .glass-input {
     width: 100%;
     padding: 1rem;
@@ -94,7 +94,7 @@ body {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), inset 0 2px 4px rgba(0,0,0,0.5);
 }
 
-/* انيميشن الـ Pop-up */
+
 .popup-show {
     opacity: 1 !important;
     display: flex !important;
@@ -103,7 +103,7 @@ body {
     transform: scale(1) !important;
 }
 
-/* 🌟 أنيميشن قائمة الموبايل المحدث (تنبثق من الزرار) 🌟 */
+
 .mobile-menu {
     transform: scale(0) translate(20px, -20px);
     opacity: 0;
@@ -127,7 +127,6 @@ body {
     pointer-events: auto;
 }
 
-/* أنيميشن تدريجي للينكات داخل القائمة */
 .mobile-link {
     opacity: 0;
     transform: translateY(10px);
@@ -138,3 +137,32 @@ body {
     opacity: 1;
     transform: translateY(0);
 }
+
+
+
+.reveal {
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+}
+
+.fade-up {
+    transform: translateY(40px);
+}
+
+.zoom-in {
+    transform: scale(0.85);
+}
+
+
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+.delay-400 { transition-delay: 0.4s; }
+.delay-500 { transition-delay: 0.5s; }
+.delay-600 { transition-delay: 0.6s; }

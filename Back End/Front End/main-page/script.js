@@ -1,6 +1,21 @@
 lucide.createIcons();
 
-// --- 1. إدارة الحالة (الثيم واللغة) ---
+
+const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            
+            scrollObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+function observeElements() {
+    document.querySelectorAll('.reveal:not(.active)').forEach(el => scrollObserver.observe(el));
+}
+
+
 const savedLang = localStorage.getItem('lang') || 'ar';
 if (savedLang === 'en') {
     applyLanguage('en');
@@ -11,7 +26,7 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
 });
 
-// --- 2. قائمة الموبايل المنسدلة ---
+
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
 const mobileLinks = document.querySelectorAll('.mobile-link');
@@ -55,7 +70,7 @@ mobileLinks.forEach(link => {
     });
 });
 
-// --- 3. جلب وعرض المشاريع (المثبتة في الهوم فقط) ---
+
 async function fetchProjects() {
     const container = document.getElementById('projects-container');
     const isAr = document.documentElement.dir === 'rtl';
@@ -69,8 +84,8 @@ async function fetchProjects() {
             return;
         }
 
-        container.innerHTML = dbProjects.map(p => `
-            <div class="glass-card p-10 group hover:-translate-y-3 transition-all duration-500 hover:shadow-blue-500/10 flex flex-col h-full">
+        container.innerHTML = dbProjects.map((p, index) => `
+            <div class="glass-card p-10 group hover:-translate-y-3 transition-all duration-500 hover:shadow-blue-500/10 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
                 <div class="flex justify-between items-center mb-8">
                     <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600">
                         <i data-lucide="layout-template"></i>
@@ -85,10 +100,11 @@ async function fetchProjects() {
             </div>
         `).join('');
         lucide.createIcons();
+        observeElements();      
     } catch (e) { console.log("خطأ في الاتصال بالمشاريع"); }
 }
 
-// --- 4. جلب وعرض التقييمات (المثبتة في الهوم فقط) ---
+// --- 4. جلب وعرض التقييمات ---
 async function fetchRecentReviews() {
     const container = document.getElementById('reviews-container');
     const isAr = document.documentElement.dir === 'rtl';
@@ -103,13 +119,13 @@ async function fetchRecentReviews() {
             return;
         }
 
-        container.innerHTML = reviews.map(rev => {
+        container.innerHTML = reviews.map((rev, index) => {
             const starsHtml = Array(5).fill(0).map((_, i) => 
                 `<i data-lucide="star" class="w-4 h-4 ${i < rev.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300 dark:text-slate-700'}"></i>`
             ).join('');
 
             return `
-            <div class="glass-card p-8 flex flex-col h-full">
+            <div class="glass-card p-8 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
                 <div class="flex justify-between items-start mb-6">
                     <h3 class="text-xl font-black text-blue-600">${rev.reviewerName}</h3>
                     <div class="flex gap-1 filter drop-shadow-[0_0_3px_rgba(250,204,21,0.5)]">${starsHtml}</div>
@@ -119,13 +135,14 @@ async function fetchRecentReviews() {
             `;
         }).join('');
         lucide.createIcons();
+        observeElements(); 
     } catch (e) { 
         console.log("خطأ في الاتصال بالتقييمات");
         container.innerHTML = ""; 
     }
 }
 
-// --- 5. التحكم في البوب أب وإرسال الرسائل ---
+
 function showPopup() { document.getElementById('success-popup').classList.add('popup-show'); }
 function closePopup() { document.getElementById('success-popup').classList.remove('popup-show'); }
 
@@ -167,7 +184,6 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
     }
 });
 
-// --- 6. تغيير اللغة الشامل (AR/EN) ---
 function applyLanguage(lang) {
     const isAr = lang === 'ar';
     document.documentElement.dir = isAr ? 'rtl' : 'ltr';
@@ -225,14 +241,15 @@ document.getElementById('lang-toggle').addEventListener('click', function() {
     applyLanguage(newLang);
 });
 
-// تسجيل زيارة الموقع
+
 window.addEventListener('DOMContentLoaded', () => {
     if(!sessionStorage.getItem('site_visited')) {
         fetch('/api/visit', { method: 'POST' }).catch(err => console.log(err));
         sessionStorage.setItem('site_visited', 'true');
     }
+    observeElements(); 
 });
 
-// تشغيل الدوال عند تحميل الصفحة
+
 fetchProjects();
 fetchRecentReviews();

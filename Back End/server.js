@@ -31,11 +31,12 @@ mongoose.connect(DB_URI, {
         console.error('تفاصيل الخطأ:', err.message);
     });
 
-// 🚀 التعديل الأهم: إعدادات الإيميل الصريحة واختبار الاتصال
+// 🚀 التعديل الأهم: استخدام بورت 587 لتخطي حماية Railway
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // ضروري عشان Gmail يقبل الاتصال من Railway
+    port: 587,
+    secure: false, // لازم تكون false مع بورت 587
+    requireTLS: true, // إجبار التشفير عشان جوجل ترضى
     auth: { 
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS 
@@ -133,7 +134,7 @@ app.post('/api/reviews', async (req, res) => {
         });
         res.json({ success: true });
     } catch (error) { 
-        console.error("❌ Email/Review Error: ", error); // تم إضافة طباعة الخطأ هنا
+        console.error("❌ Email/Review Error: ", error); 
         res.status(500).json({ success: false }); 
     }
 });
@@ -162,7 +163,7 @@ app.post('/api/contact', async (req, res) => {
         });
         res.json({ success: true });
     } catch (error) { 
-        console.error("❌ Contact Email Error: ", error); // تم إضافة طباعة الخطأ هنا
+        console.error("❌ Contact Email Error: ", error); 
         res.status(500).json({ success: false }); 
     }
 });

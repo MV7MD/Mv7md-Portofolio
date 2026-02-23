@@ -1,0 +1,110 @@
+
+body { font-family: 'Alexandria', sans-serif; }
+
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 3rem;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(59, 130, 246, 0.15);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+
+.glass-input {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.dark .glass-input {
+    background-color: rgba(15, 23, 42, 0.9);
+    border-color: #334155;
+    color: #f8fafc;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.glass-input:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+
+.interactive-stars .star {
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dark .interactive-stars .star {
+    color: #475569;
+}
+
+.interactive-stars .star svg {
+    width: 32px;
+    height: 32px;
+    fill: transparent;
+    stroke-width: 1.5;
+    transition: all 0.3s ease;
+}
+
+
+.interactive-stars .star:hover,
+.interactive-stars .star:hover ~ .star,
+.interactive-stars .star.active,
+.interactive-stars .star.active ~ .star {
+    color: #fbbf24;
+}
+
+.interactive-stars .star:hover svg,
+.interactive-stars .star:hover ~ .star svg,
+.interactive-stars .star.active svg,
+.interactive-stars .star.active ~ .star svg {
+    fill: #fbbf24;
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.8));
+    transform: scale(1.15);
+}
+
+
+.popup-show {
+    opacity: 1 !important;
+    display: flex !important;
+}
+.popup-show #popup-content {
+    transform: scale(1) !important;
+}
+
+
+.reveal {
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+}
+
+.fade-up {
+    transform: translateY(40px);
+}
+
+.zoom-in {
+    transform: scale(0.85);
+}
+
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }

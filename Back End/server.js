@@ -35,15 +35,18 @@ mongoose.connect(DB_URI, {
         console.error('تفاصيل الخطأ:', err.message);
     });
 
-// 🚀 التعديل النهائي للإيميل: استخدام بورت 587 مع إعدادات الـ TLS الصحيحة
+// 🚀 التعديل النهائي للإيميل: استخدام بورت 587 مع إعدادات تخطي حماية الشهادات
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, 
-    requireTLS: true, 
+    secure: false, // يجب أن تكون false مع بورت 587
     auth: { 
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS 
+    },
+    tls: {
+        rejectUnauthorized: false, // للسماح بالاتصال من سيرفرات Railway دون مشاكل SSL
+        minVersion: 'TLSv1.2'
     },
     connectionTimeout: 10000 
 });
@@ -186,7 +189,6 @@ app.post('/api/visit', async (req, res) => {
 });
 
 // --- APIs الأدمن المحمية ---
-
 app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
     try {
         const visitInfo = await Visit.findOne({ id: "main_counter" });

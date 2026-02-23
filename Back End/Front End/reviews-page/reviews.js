@@ -1,10 +1,29 @@
 lucide.createIcons();
 
-// --- 1. استرجاع الحالة المحفوظة وتطبيقها فوراً ---
+
+const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            scrollObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+function observeElements() {
+    document.querySelectorAll('.reveal:not(.active)').forEach(el => scrollObserver.observe(el));
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+    observeElements();
+});
+
+
 const savedLang = localStorage.getItem('lang') || 'ar';
 applyLanguage(savedLang);
 
-// --- 2. نظام النجوم التفاعلي ---
+
 const stars = document.querySelectorAll('.interactive-stars .star');
 const ratingInput = document.getElementById('ratingValue');
 
@@ -16,13 +35,13 @@ stars.forEach(star => {
     });
 });
 
-// --- 3. تبديل الثيم وحفظه ---
+
 document.getElementById('theme-toggle').addEventListener('click', () => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 });
 
-// --- 🌟 دوال التحكم في البوب أب 🌟 ---
+
 function showPopup() { 
     document.getElementById('success-popup').classList.add('popup-show'); 
 }
@@ -30,13 +49,13 @@ function closePopup() {
     document.getElementById('success-popup').classList.remove('popup-show'); 
 }
 
-// --- 4. دالة تطبيق اللغة الشاملة ---
+
 function applyLanguage(lang) {
     const isAr = lang === 'ar';
     document.documentElement.dir = isAr ? 'rtl' : 'ltr';
     document.getElementById('lang-toggle').innerText = isAr ? 'EN' : 'AR';
     
-    // تحديث النصوص بناءً على اللغة
+    
     document.getElementById('page-title').innerHTML = isAr 
         ? 'شاركنا <span class="text-blue-500">رأيك</span>'
         : 'Share Your <span class="text-blue-500">Opinion</span>';
@@ -47,13 +66,13 @@ function applyLanguage(lang) {
     document.getElementById('submit-btn').innerText = isAr ? 'إرسال التقييم 🚀' : 'Submit Review 🚀';
     document.getElementById('rating-label').innerText = isAr ? 'التقييم:' : 'Rating:';
     
-    // 🌟 ترجمة البوب أب 🌟
+    
     document.getElementById('popup-head').innerText = isAr ? 'تم الإرسال!' : 'Sent!';
     document.getElementById('popup-msg').innerText = isAr ? 'تم إرسال تقييمك بنجاح، شكراً لك ❤️' : 'Review submitted successfully, thank you ❤️';
     document.getElementById('popup-btn').innerText = isAr ? 'إغلاق' : 'Close';
 }
 
-// --- 5. زرار تبديل اللغة ---
+
 document.getElementById('lang-toggle').addEventListener('click', function() {
     const currentLang = localStorage.getItem('lang') || 'ar';
     const newLang = currentLang === 'ar' ? 'en' : 'ar';
@@ -62,7 +81,7 @@ document.getElementById('lang-toggle').addEventListener('click', function() {
     applyLanguage(newLang);
 });
 
-// --- 6. إرسال التقييم ---
+
 document.getElementById('reviewForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -93,7 +112,7 @@ document.getElementById('reviewForm').addEventListener('submit', async (e) => {
         });
 
         if (res.ok) {
-            // 🌟 إظهار البوب أب بدل الـ Alert 🌟
+            
             showPopup();
             
             e.target.reset();

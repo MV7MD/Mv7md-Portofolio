@@ -16,7 +16,7 @@
             theme: { extend: { colors: { primary: '#3b82f6', accent: '#00d2ff' } } }
         }
         
-        // 🌟 استعادة الثيم واللغة فوراً لمنع الوميض 🌟
+        
         if (localStorage.getItem('theme') === 'light') {
             document.documentElement.classList.remove('dark');
         } else {
@@ -55,9 +55,9 @@
 
     <main class="min-h-screen pt-32 pb-20 px-6 flex items-center justify-center">
         <div class="max-w-2xl w-full"> 
-            <h1 id="page-title" class="text-4xl md:text-5xl font-black mb-10 text-center tracking-tight text-slate-900 dark:text-white">شاركنا <span class="text-blue-500">رأيك</span></h1>
+            <h1 id="page-title" class="text-4xl md:text-5xl font-black mb-10 text-center tracking-tight text-slate-900 dark:text-white reveal fade-up">شاركنا <span class="text-blue-500">رأيك</span></h1>
 
-            <div class="glass-card p-8 md:p-12 relative overflow-hidden">
+            <div class="glass-card p-8 md:p-12 relative overflow-hidden reveal fade-up delay-200">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl"></div>
                 <h2 id="form-head" class="text-2xl font-black mb-8 text-center relative z-10">اترك بصمتك هنا 👇</h2>
                 
@@ -82,7 +82,8 @@
             </div>
         </div>
     </main>
-<div id="success-popup" class="fixed inset-0 z-[100] flex items-center justify-center px-6 hidden opacity-0 transition-all duration-500">
+    
+    <div id="success-popup" class="fixed inset-0 z-[100] flex items-center justify-center px-6 hidden opacity-0 transition-all duration-500">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md"></div>
         <div class="relative bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-2xl border border-blue-500/30 max-w-sm w-full text-center scale-90 transition-transform duration-500" id="popup-content">
             <div class="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">

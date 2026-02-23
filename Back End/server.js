@@ -15,9 +15,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, '../Front End')));
-app.use(express.static(path.join(__dirname, '../public/main-page')));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public/main-page')));
+
 
 // 🔗 استخدام الرابط من متغيرات البيئة للحماية
 const DB_URI = process.env.DB_URI;

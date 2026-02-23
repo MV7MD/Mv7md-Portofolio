@@ -85,7 +85,7 @@ async function fetchProjects() {
             </div>
         `).join('');
         lucide.createIcons();
-    } catch (e) { console.log("خطأ في الاتصال"); }
+    } catch (e) { console.log("خطأ في الاتصال بالمشاريع"); }
 }
 
 // --- 4. جلب وعرض التقييمات (المثبتة في الهوم فقط) ---
@@ -119,7 +119,10 @@ async function fetchRecentReviews() {
             `;
         }).join('');
         lucide.createIcons();
-    } catch (e) { container.innerHTML = ""; }
+    } catch (e) { 
+        console.log("خطأ في الاتصال بالتقييمات");
+        container.innerHTML = ""; 
+    }
 }
 
 // --- 5. التحكم في البوب أب وإرسال الرسائل ---
@@ -151,8 +154,13 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         if (res.ok && data.success) {
             showPopup();
             e.target.reset();
+        } else {
+             alert(isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى.' : 'An error occurred, please try again.');
         }
-    } catch (err) { alert(isAr ? 'خطأ في الاتصال' : 'Connection Error'); }
+    } catch (err) { 
+        console.error('Fetch error:', err);
+        alert(isAr ? 'خطأ في الاتصال بالسيرفر' : 'Server Connection Error'); 
+    }
     finally {
         submitBtn.innerText = originalBtnText;
         submitBtn.disabled = false;

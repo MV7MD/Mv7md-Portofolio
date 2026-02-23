@@ -1,9 +1,9 @@
-/* تفعيل الخط */
+
 body {
     font-family: 'Alexandria', sans-serif;
 }
 
-/* أنيميشن الطفو للكروت */
+
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
@@ -14,7 +14,7 @@ body {
     animation: float 6s ease-in-out infinite;
 }
 
-/* الكروت التلجية (نفس ستايل المين بيج) */
+
 .glass-card {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
@@ -28,3 +28,26 @@ body {
     border: 1px solid rgba(59, 130, 246, 0.15);
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
 }
+
+
+
+.reveal {
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+}
+
+.fade-up {
+    transform: translateY(40px);
+}
+
+.zoom-in {
+    transform: scale(0.85);
+}
+
+.delay-200 { transition-delay: 0.2s; }

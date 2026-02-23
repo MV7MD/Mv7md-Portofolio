@@ -31,11 +31,24 @@ mongoose.connect(DB_URI, {
         console.error('تفاصيل الخطأ:', err.message);
     });
 
+// 🚀 التعديل الأهم: إعدادات الإيميل الصريحة واختبار الاتصال
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // ضروري عشان Gmail يقبل الاتصال من Railway
     auth: { 
         user: process.env.EMAIL_USER, 
         pass: process.env.EMAIL_PASS 
+    },
+    connectionTimeout: 10000 // قطع الاتصال لو جوجل علقت
+});
+
+// دالة اختبار الإيميل أول ما السيرفر يشتغل
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('❌ خطأ كارثي في إعدادات الإيميل:', error.message);
+    } else {
+        console.log('✅✅✅ سيرفر الإيميلات متصل وجاهز للإرسال!');
     }
 });
 

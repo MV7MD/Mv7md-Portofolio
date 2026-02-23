@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// مسارات ملفات الفرونت إند
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
@@ -26,11 +27,18 @@ mongoose.connect(process.env.DB_URI)
     .then(() => console.log('✅✅✅ تم الربط بالسحاب بنجاح!'))
     .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
 
-// 🚀 دالة إرسال الإيميلات عبر Brevo API
+// 🚀 دالة إرسال الإيميلات عبر Brevo API (باستخدام الـ API Key الجديد)
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
+    const apiKey = process.env.BREVO_API_KEY; // المفتاح اللي بيبدأ بـ xkeysib
+
+    if (!apiKey) {
+        console.error("❌ خطأ: BREVO_API_KEY غير موجود في إعدادات Railway!");
+        return false;
+    }
+
     try {
         const body = {
-            sender: { name: "Portfolio Admin", email: "mv7mdvboelmaged@gmail.com" }, // تأكد أن هذا الإيميل هو المسجل في Brevo
+            sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" },
             to: [{ email: "mv7mdvboelmaged@gmail.com", name: "Muhammad" }],
             subject: subject,
             htmlContent: htmlContent
@@ -44,18 +52,19 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
             method: 'POST',
             headers: {
                 'accept': 'application/json',
-                'api-key': process.env.BREVO_API_KEY, // تأكد من اسم المتغير في Railway
+                'api-key': apiKey,
                 'content-type': 'application/json'
             },
             body: JSON.stringify(body)
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error("❌ Brevo API Response Error:", errorText);
+            const errorData = await response.json();
+            console.error("❌ Brevo API Response Error:", errorData.message);
             return false;
         }
 
+        console.log("✅✅✅ تم إرسال الإيميل بنجاح عبر Brevo API");
         return true;
     } catch (error) {
         console.error("❌ Network Error while calling Brevo:", error.message);
@@ -63,7 +72,27 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
     }
 }
 
-// تواصل معي (بنفس التنسيق القديم)
+// --- وسيط حماية الأدمن ---
+const verifyAdmin = (req, res, next) => {
+    const token = req.headers.authorization;
+    if (token === `Bearer ${process.env.SECRET_TOKEN}`) {
+        next(); 
+    } else {
+        res.status(401).json({ success: false, message: "غير مصرح لك بالدخول!" }); 
+    }
+};
+
+app.post('/api/admin/login', (req, res) => {
+    if (req.body.password === process.env.ADMIN_PASSWORD) {
+        res.json({ success: true, token: process.env.SECRET_TOKEN });
+    } else {
+        res.status(401).json({ success: false, message: "كلمة المرور خاطئة!" });
+    }
+});
+
+// --- APIs الزوار ---
+
+// تواصل معي
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
@@ -82,17 +111,15 @@ app.post('/api/contact', async (req, res) => {
         if (success) {
             res.json({ success: true });
         } else {
-            // سنعرف السبب من اللوجز الآن
             res.status(500).json({ success: false, message: "Email service failed" });
         }
-
     } catch (error) { 
         console.error("❌ Contact Route Error:", error.message);
         res.status(500).json({ success: false }); 
     }
 });
 
-// إرسال تقييم جديد (بنفس التنسيق القديم)
+// إرسال تقييم جديد
 app.post('/api/reviews', async (req, res) => {
     const { reviewerName, message, rating } = req.body;
     try {
@@ -113,7 +140,7 @@ app.post('/api/reviews', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// دالة الزيارات المحسنة (لحل مشكلة الـ Deprecation Warning)
+// دالة الزيارات
 app.post('/api/visit', async (req, res) => {
     try {
         let visitInfo = await Visit.findOneAndUpdate(
@@ -125,7 +152,7 @@ app.post('/api/visit', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// باقي الـ GET APIs بتاعتك كما هي...
+// جلب المشاريع والتقييمات
 app.get('/api/projects/home', async (req, res) => {
     try {
         const projects = await Project.find({ showOnHome: true, isVisible: true }).limit(2).sort({ createdAt: -1 });
@@ -133,6 +160,30 @@ app.get('/api/projects/home', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Error" }); }
 });
 
+app.get('/api/reviews/home', async (req, res) => {
+    try {
+        const reviews = await Review.find({ showOnHome: true, isApproved: true }).limit(2).sort({ createdAt: -1 });
+        res.json(reviews);
+    } catch (error) { res.status(500).json({ message: "Error" }); }
+});
+
+// --- APIs الأدمن (يجب أن تظل محمية) ---
+app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
+    const visitInfo = await Visit.findOne({ id: "main_counter" });
+    res.json({ visits: visitInfo ? visitInfo.count : 0 });
+});
+
+app.get('/api/admin/projects', verifyAdmin, async (req, res) => {
+    const projects = await Project.find().sort({ createdAt: -1 });
+    res.json(projects);
+});
+
+app.get('/api/admin/reviews', verifyAdmin, async (req, res) => {
+    const reviews = await Review.find().sort({ createdAt: -1 });
+    res.json(reviews);
+});
+
+// مسار الدخول للموقع
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
 });

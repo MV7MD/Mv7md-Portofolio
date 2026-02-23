@@ -60,7 +60,8 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error("❌ Brevo API Response Error:", errorData.message);
+            // التعديل هنا فقط: طباعة تفاصيل الخطأ كاملة لمعرفة السبب (مثل Sender not verified)
+            console.error("❌ Brevo API Response Error:", JSON.stringify(errorData));
             return false;
         }
 

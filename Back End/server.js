@@ -22,19 +22,15 @@ app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
 // 🔗 الاتصال بقاعدة البيانات
-mongoose.connect(process.env.DB_URI, {
-    serverSelectionTimeoutMS: 5000 
-})
+mongoose.connect(process.env.DB_URI)
     .then(() => console.log('✅✅✅ تم الربط بالسحاب بنجاح!'))
-    .catch((err) => {
-        console.error('❌ فشل الاتصال بالسحاب:', err.message);
-    });
+    .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
 
-// 🚀 دالة إرسال الإيميلات الموحدة عبر Brevo API (بديلة لـ nodemailer)
+// 🚀 دالة إرسال الإيميلات عبر Brevo API
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
     try {
         const body = {
-            sender: { name: "Portfolio Admin", email: "mv7mdvboelmaged@gmail.com" },
+            sender: { name: "Portfolio Admin", email: "mv7mdvboelmaged@gmail.com" }, // تأكد أن هذا الإيميل هو المسجل في Brevo
             to: [{ email: "mv7mdvboelmaged@gmail.com", name: "Muhammad" }],
             subject: subject,
             htmlContent: htmlContent
@@ -48,66 +44,26 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
             method: 'POST',
             headers: {
                 'accept': 'application/json',
-                'api-key': process.env.BREVO_API_KEY,
+                'api-key': process.env.BREVO_API_KEY, // تأكد من اسم المتغير في Railway
                 'content-type': 'application/json'
             },
             body: JSON.stringify(body)
         });
 
-        return response.ok;
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("❌ Brevo API Response Error:", errorText);
+            return false;
+        }
+
+        return true;
     } catch (error) {
-        console.error("❌ Brevo API Error:", error.message);
+        console.error("❌ Network Error while calling Brevo:", error.message);
         return false;
     }
 }
 
-// --- وسيط حماية الأدمن ---
-const verifyAdmin = (req, res, next) => {
-    const token = req.headers.authorization;
-    if (token === `Bearer ${process.env.SECRET_TOKEN}`) {
-        next(); 
-    } else {
-        res.status(401).json({ success: false, message: "غير مصرح لك بالدخول!" }); 
-    }
-};
-
-app.post('/api/admin/login', (req, res) => {
-    if (req.body.password === process.env.ADMIN_PASSWORD) {
-        res.json({ success: true, token: process.env.SECRET_TOKEN });
-    } else {
-        res.status(401).json({ success: false, message: "كلمة المرور خاطئة!" });
-    }
-});
-
-// --- APIs الزوار ---
-
-// إرسال تقييم جديد مع نفس تنسيق الإيميل القديم
-app.post('/api/reviews', async (req, res) => {
-    const { reviewerName, message, rating } = req.body;
-    try {
-        const newReview = new Review({ reviewerName, message, rating });
-        await newReview.save();
-        
-        const starsHtml = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-        
-        // نفس الـ HTML بتاعك بالظبط
-        const htmlContent = `
-            <div dir="rtl" style="font-family: Arial; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                <h2 style="color: #fbbf24;">تقييم جديد بانتظار موافقتك!</h2>
-                <p><strong>العميل:</strong> ${reviewerName}</p>
-                <p><strong>التقييم:</strong> ${starsHtml}</p>
-                <p style="background: #f9f9f9; padding: 10px; border-right: 4px solid #fbbf24;">"${message}"</p>
-            </div>`;
-
-        sendEmailViaBrevo(`⭐ تقييم جديد معلق من: ${reviewerName}`, htmlContent);
-
-        res.json({ success: true });
-    } catch (error) { 
-        res.status(500).json({ success: false }); 
-    }
-});
-
-// تواصل معي مع نفس التنسيق والشكل
+// تواصل معي (بنفس التنسيق القديم)
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
@@ -123,35 +79,59 @@ app.post('/api/contact', async (req, res) => {
 
         const success = await sendEmailViaBrevo(`🚀 رسالة تواصل جديدة من: ${name}`, htmlContent, email);
         
-        if (success) res.json({ success: true });
-        else throw new Error("Email failed");
+        if (success) {
+            res.json({ success: true });
+        } else {
+            // سنعرف السبب من اللوجز الآن
+            res.status(500).json({ success: false, message: "Email service failed" });
+        }
 
     } catch (error) { 
-        console.error("❌ Contact Error:", error.message);
+        console.error("❌ Contact Route Error:", error.message);
         res.status(500).json({ success: false }); 
     }
 });
 
-// (باقي الـ APIs والمشاريع بدون تغيير)
+// إرسال تقييم جديد (بنفس التنسيق القديم)
+app.post('/api/reviews', async (req, res) => {
+    const { reviewerName, message, rating } = req.body;
+    try {
+        const newReview = new Review({ reviewerName, message, rating });
+        await newReview.save();
+        
+        const starsHtml = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
+        const htmlContent = `
+            <div dir="rtl" style="font-family: Arial; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                <h2 style="color: #fbbf24;">تقييم جديد بانتظار موافقتك!</h2>
+                <p><strong>العميل:</strong> ${reviewerName}</p>
+                <p><strong>التقييم:</strong> ${starsHtml}</p>
+                <p style="background: #f9f9f9; padding: 10px; border-right: 4px solid #fbbf24;">"${message}"</p>
+            </div>`;
+
+        await sendEmailViaBrevo(`⭐ تقييم جديد معلق من: ${reviewerName}`, htmlContent);
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+// دالة الزيارات المحسنة (لحل مشكلة الـ Deprecation Warning)
 app.post('/api/visit', async (req, res) => {
     try {
         let visitInfo = await Visit.findOneAndUpdate(
             { id: "main_counter" },
             { $inc: { count: 1 } },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
         res.json({ success: true, count: visitInfo.count });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
+// باقي الـ GET APIs بتاعتك كما هي...
 app.get('/api/projects/home', async (req, res) => {
     try {
         const projects = await Project.find({ showOnHome: true, isVisible: true }).limit(2).sort({ createdAt: -1 });
         res.json(projects);
     } catch (error) { res.status(500).json({ message: "Error" }); }
 });
-
-// (أكمل باقي الـ Get APIs كما هي في كودك الأصلي...)
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));

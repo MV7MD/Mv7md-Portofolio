@@ -32,8 +32,8 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
 
     try {
         const body = {
-            sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" }, // المرسل المفعل
-            to: [{ email: "mv7mdvboelmagd@gmail.com", name: "Muhammad" }], // المستلم (إيميلك المفضل)
+            sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" },
+            to: [{ email: "mv7mdvboelmagd@gmail.com", name: "Muhammad" }], 
             subject: subject,
             htmlContent: htmlContent
         };
@@ -84,29 +84,22 @@ app.post('/api/admin/login', (req, res) => {
 
 // --- APIs الزوار ---
 
-// 1. تواصل معي (ستايل أزرق احترافي)
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
         const htmlContent = `
             <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                 <div style="background-color: #2563eb; padding: 25px; text-align: center;">
-                    <h2 style="color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px;">📩 رسالة تواصل جديدة</h2>
+                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">📩 رسالة تواصل جديدة</h2>
                 </div>
                 <div style="padding: 30px; color: #1e293b;">
-                    <p style="font-size: 16px; margin-bottom: 20px;">مرحباً محمد، لديك رسالة جديدة من الموقع الشخصي:</p>
+                    <p style="font-size: 16px;">مرحباً محمد، لديك رسالة جديدة:</p>
                     <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; border-right: 5px solid #2563eb;">
-                        <p style="margin: 0 0 10px 0;"><strong>👤 الاسم:</strong> ${name}</p>
-                        <p style="margin: 0 0 15px 0;"><strong>📧 البريد:</strong> <a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a></p>
+                        <p><strong>👤 الاسم:</strong> ${name}</p>
+                        <p><strong>📧 البريد:</strong> <a href="mailto:${email}" style="color: #2563eb;">${email}</a></p>
                         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
-                        <p style="margin: 0; line-height: 1.6; color: #334155;"><strong>📝 الرسالة:</strong><br>${message}</p>
+                        <p><strong>📝 الرسالة:</strong><br>${message}</p>
                     </div>
-                    <div style="margin-top: 30px; text-align: center;">
-                        <a href="mailto:${email}" style="background-color: #2563eb; color: #ffffff; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">الرد على الرسالة</a>
-                    </div>
-                </div>
-                <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b;">
-                    هذا الإشعار مرسل تلقائياً من Portfolio الخاص بك
                 </div>
             </div>`;
 
@@ -115,7 +108,6 @@ app.post('/api/contact', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// 2. إرسال تقييم (ستايل ذهبي فخم)
 app.post('/api/reviews', async (req, res) => {
     const { reviewerName, message, rating } = req.body;
     try {
@@ -128,17 +120,12 @@ app.post('/api/reviews', async (req, res) => {
                 <div style="background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); padding: 25px; text-align: center;">
                     <h2 style="color: #ffffff; margin: 0; font-size: 22px;">🌟 تقييم جديد بانتظار الموافقة</h2>
                 </div>
-                <div style="padding: 30px; color: #1e293b;">
-                    <div style="text-align: center; margin-bottom: 25px;">
-                        <div style="font-size: 40px; margin-bottom: 10px;">${starsHtml}</div>
-                        <p style="font-size: 18px; font-weight: bold; color: #b45309; margin: 0;">تقييم ${rating} نجوم</p>
+                <div style="padding: 30px; text-align: center;">
+                    <div style="font-size: 40px;">${starsHtml}</div>
+                    <div style="background-color: #fffbeb; border-radius: 12px; padding: 20px; border: 1px dashed #fbbf24; margin-top: 20px;">
+                        <p><strong>👤 كاتب التقييم:</strong> ${reviewerName}</p>
+                        <p style="font-style: italic;">"${message}"</p>
                     </div>
-                    <div style="background-color: #fffbeb; border-radius: 12px; padding: 20px; border: 1px dashed #fbbf24;">
-                        <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>👤 كاتب التقييم:</strong> ${reviewerName}</p>
-                        <hr style="border: 0; border-top: 1px solid #fef3c7; margin: 15px 0;">
-                        <p style="margin: 0; line-height: 1.6; font-style: italic; color: #451a03; font-size: 17px;">"${message}"</p>
-                    </div>
-                    <p style="margin-top: 25px; font-size: 14px; text-align: center; color: #64748b;">يجب عليك الدخول إلى لوحة التحكم للموافقة على نشر التقييم.</p>
                 </div>
             </div>`;
 
@@ -147,7 +134,7 @@ app.post('/api/reviews', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// --- باقي الـ APIs بدون تغيير ---
+// --- APIs الزيارات والمشاريع العامة ---
 app.post('/api/visit', async (req, res) => {
     try {
         let visitInfo = await Visit.findOneAndUpdate(
@@ -173,9 +160,62 @@ app.get('/api/reviews/home', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Error" }); }
 });
 
+// --- 🛠️ الجزء المفقود: APIs الإدارة (Admin APIs) ---
+
 app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
     const visitInfo = await Visit.findOne({ id: "main_counter" });
     res.json({ visits: visitInfo ? visitInfo.count : 0 });
+});
+
+// جلب كل المشاريع للأدمن
+app.get('/api/admin/projects', verifyAdmin, async (req, res) => {
+    try {
+        const projects = await Project.find().sort({ createdAt: -1 });
+        res.json(projects);
+    } catch (error) { res.status(500).json({ message: "Error" }); }
+});
+
+// جلب كل التقييمات للأدمن (ليوافق عليها)
+app.get('/api/admin/reviews', verifyAdmin, async (req, res) => {
+    try {
+        const reviews = await Review.find().sort({ createdAt: -1 });
+        res.json(reviews);
+    } catch (error) { res.status(500).json({ message: "Error" }); }
+});
+
+// إضافة مشروع جديد
+app.post('/api/admin/projects', verifyAdmin, async (req, res) => {
+    try {
+        const newProject = new Project(req.body);
+        await newProject.save();
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+// مسح مشروع
+app.delete('/api/admin/projects/:id', verifyAdmin, async (req, res) => {
+    try {
+        await Project.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+// الموافقة على تقييم أو رفضه
+app.put('/api/admin/reviews/:id/approve', verifyAdmin, async (req, res) => {
+    try {
+        const review = await Review.findById(req.params.id);
+        review.isApproved = !review.isApproved;
+        await review.save();
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+// مسح تقييم
+app.delete('/api/admin/reviews/:id', verifyAdmin, async (req, res) => {
+    try {
+        await Review.findByIdAndDelete(req.params.id);
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
 app.get('/', (req, res) => {

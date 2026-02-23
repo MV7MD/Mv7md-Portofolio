@@ -1,6 +1,6 @@
 require('dotenv').config(); 
 
-// 🚀 إجبار السيرفر على استخدام IPv4 أولاً لحل مشكلة الاتصال في Railway
+// 🚀 إجبار السيرفر على استخدام IPv4 لحل مشكلة Railway
 require('dns').setDefaultResultOrder('ipv4first'); 
 
 const express = require('express');
@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// مسارات ملفات الفرونت إند
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
@@ -27,26 +26,19 @@ mongoose.connect(process.env.DB_URI)
     .then(() => console.log('✅✅✅ تم الربط بالسحاب بنجاح!'))
     .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
 
-// 🚀 دالة إرسال الإيميلات عبر Brevo API (باستخدام الـ API Key الجديد)
+// 🚀 دالة إرسال الإيميلات الاحترافية عبر Brevo
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
-    const apiKey = process.env.BREVO_API_KEY; // المفتاح اللي بيبدأ بـ xkeysib
-
-    if (!apiKey) {
-        console.error("❌ خطأ: BREVO_API_KEY غير موجود في إعدادات Railway!");
-        return false;
-    }
+    const apiKey = process.env.BREVO_API_KEY;
 
     try {
         const body = {
-            sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" },
-            to: [{ email: "mv7mdvboelmaged@gmail.com", name: "Muhammad" }],
+            sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" }, // المرسل المفعل
+            to: [{ email: "mv7mdvboelmagd@gmail.com", name: "Muhammad" }], // المستلم (إيميلك المفضل)
             subject: subject,
             htmlContent: htmlContent
         };
 
-        if (replyTo) {
-            body.replyTo = { email: replyTo };
-        }
+        if (replyTo) { body.replyTo = { email: replyTo }; }
 
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {
             method: 'POST',
@@ -60,15 +52,14 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            // التعديل هنا فقط: طباعة تفاصيل الخطأ كاملة لمعرفة السبب (مثل Sender not verified)
-            console.error("❌ Brevo API Response Error:", JSON.stringify(errorData));
+            console.error("❌ Brevo API Error:", JSON.stringify(errorData));
             return false;
         }
 
-        console.log("✅✅✅ تم إرسال الإيميل بنجاح عبر Brevo API");
+        console.log("✅✅✅ Email sent successfully!");
         return true;
     } catch (error) {
-        console.error("❌ Network Error while calling Brevo:", error.message);
+        console.error("❌ Network Error:", error.message);
         return false;
     }
 }
@@ -93,34 +84,38 @@ app.post('/api/admin/login', (req, res) => {
 
 // --- APIs الزوار ---
 
-// تواصل معي
+// 1. تواصل معي (ستايل أزرق احترافي)
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
     try {
         const htmlContent = `
-            <div dir="rtl" style="font-family: Arial; padding: 20px; border: 1px solid #3b82f6; border-radius: 10px;">
-                <h2 style="color: #3b82f6;">رسالة تواصل جديدة!</h2>
-                <p><strong>المرسل:</strong> ${name}</p>
-                <p><strong>البريد:</strong> ${email}</p>
-                <div style="background: #f0fdf4; padding: 15px; border-radius: 5px; margin-top: 10px;">
-                    ${message}
+            <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                <div style="background-color: #2563eb; padding: 25px; text-align: center;">
+                    <h2 style="color: #ffffff; margin: 0; font-size: 22px; letter-spacing: 1px;">📩 رسالة تواصل جديدة</h2>
+                </div>
+                <div style="padding: 30px; color: #1e293b;">
+                    <p style="font-size: 16px; margin-bottom: 20px;">مرحباً محمد، لديك رسالة جديدة من الموقع الشخصي:</p>
+                    <div style="background-color: #f8fafc; border-radius: 12px; padding: 20px; border-right: 5px solid #2563eb;">
+                        <p style="margin: 0 0 10px 0;"><strong>👤 الاسم:</strong> ${name}</p>
+                        <p style="margin: 0 0 15px 0;"><strong>📧 البريد:</strong> <a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a></p>
+                        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+                        <p style="margin: 0; line-height: 1.6; color: #334155;"><strong>📝 الرسالة:</strong><br>${message}</p>
+                    </div>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="mailto:${email}" style="background-color: #2563eb; color: #ffffff; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">الرد على الرسالة</a>
+                    </div>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b;">
+                    هذا الإشعار مرسل تلقائياً من Portfolio الخاص بك
                 </div>
             </div>`;
 
-        const success = await sendEmailViaBrevo(`🚀 رسالة تواصل جديدة من: ${name}`, htmlContent, email);
-        
-        if (success) {
-            res.json({ success: true });
-        } else {
-            res.status(500).json({ success: false, message: "Email service failed" });
-        }
-    } catch (error) { 
-        console.error("❌ Contact Route Error:", error.message);
-        res.status(500).json({ success: false }); 
-    }
+        const success = await sendEmailViaBrevo(`🚀 تواصل جديد: ${name}`, htmlContent, email);
+        res.json({ success });
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// إرسال تقييم جديد
+// 2. إرسال تقييم (ستايل ذهبي فخم)
 app.post('/api/reviews', async (req, res) => {
     const { reviewerName, message, rating } = req.body;
     try {
@@ -129,19 +124,30 @@ app.post('/api/reviews', async (req, res) => {
         
         const starsHtml = '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
         const htmlContent = `
-            <div dir="rtl" style="font-family: Arial; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-                <h2 style="color: #fbbf24;">تقييم جديد بانتظار موافقتك!</h2>
-                <p><strong>العميل:</strong> ${reviewerName}</p>
-                <p><strong>التقييم:</strong> ${starsHtml}</p>
-                <p style="background: #f9f9f9; padding: 10px; border-right: 4px solid #fbbf24;">"${message}"</p>
+            <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 20px auto; border: 1px solid #fde68a; border-radius: 16px; overflow: hidden; background-color: #ffffff; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                <div style="background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); padding: 25px; text-align: center;">
+                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">🌟 تقييم جديد بانتظار الموافقة</h2>
+                </div>
+                <div style="padding: 30px; color: #1e293b;">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <div style="font-size: 40px; margin-bottom: 10px;">${starsHtml}</div>
+                        <p style="font-size: 18px; font-weight: bold; color: #b45309; margin: 0;">تقييم ${rating} نجوم</p>
+                    </div>
+                    <div style="background-color: #fffbeb; border-radius: 12px; padding: 20px; border: 1px dashed #fbbf24;">
+                        <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>👤 كاتب التقييم:</strong> ${reviewerName}</p>
+                        <hr style="border: 0; border-top: 1px solid #fef3c7; margin: 15px 0;">
+                        <p style="margin: 0; line-height: 1.6; font-style: italic; color: #451a03; font-size: 17px;">"${message}"</p>
+                    </div>
+                    <p style="margin-top: 25px; font-size: 14px; text-align: center; color: #64748b;">يجب عليك الدخول إلى لوحة التحكم للموافقة على نشر التقييم.</p>
+                </div>
             </div>`;
 
-        await sendEmailViaBrevo(`⭐ تقييم جديد معلق من: ${reviewerName}`, htmlContent);
+        await sendEmailViaBrevo(`⭐ تقييم جديد: ${reviewerName}`, htmlContent);
         res.json({ success: true });
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// دالة الزيارات
+// --- باقي الـ APIs بدون تغيير ---
 app.post('/api/visit', async (req, res) => {
     try {
         let visitInfo = await Visit.findOneAndUpdate(
@@ -153,7 +159,6 @@ app.post('/api/visit', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// جلب المشاريع والتقييمات
 app.get('/api/projects/home', async (req, res) => {
     try {
         const projects = await Project.find({ showOnHome: true, isVisible: true }).limit(2).sort({ createdAt: -1 });
@@ -168,23 +173,11 @@ app.get('/api/reviews/home', async (req, res) => {
     } catch (error) { res.status(500).json({ message: "Error" }); }
 });
 
-// --- APIs الأدمن (يجب أن تظل محمية) ---
 app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
     const visitInfo = await Visit.findOne({ id: "main_counter" });
     res.json({ visits: visitInfo ? visitInfo.count : 0 });
 });
 
-app.get('/api/admin/projects', verifyAdmin, async (req, res) => {
-    const projects = await Project.find().sort({ createdAt: -1 });
-    res.json(projects);
-});
-
-app.get('/api/admin/reviews', verifyAdmin, async (req, res) => {
-    const reviews = await Review.find().sort({ createdAt: -1 });
-    res.json(reviews);
-});
-
-// مسار الدخول للموقع
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
 });

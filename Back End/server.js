@@ -15,12 +15,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-
-
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, '../public/main-page')));
-
+// تم التعديل هنا: مسحنا الـ ../ عشان يقرأ الفولدر من نفس المكان
+app.use(express.static(path.join(__dirname, 'Front End')));
+app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
 // 🔗 استخدام الرابط من متغيرات البيئة للحماية
 const DB_URI = process.env.DB_URI;
@@ -220,7 +217,10 @@ app.put('/api/admin/reviews/:id/home', verifyAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '../Front End/main-page/index.html')));
+// تم التعديل هنا: مسحنا الـ ../ واستخدمنا path.join بشكل سليم
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
+});
 
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);

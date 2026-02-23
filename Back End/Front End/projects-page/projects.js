@@ -1,19 +1,39 @@
 lucide.createIcons();
 
-// --- 1. استرجاع الحالة المحفوظة وتطبيقها ---
+
+const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            
+            scrollObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+function observeElements() {
+    document.querySelectorAll('.reveal:not(.active)').forEach(el => scrollObserver.observe(el));
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+    observeElements();
+});
+
+
 const savedLang = localStorage.getItem('lang') || 'ar';
 const isDark = localStorage.getItem('theme') !== 'light'; 
 
 // تطبيق اللغة المبدئية
 applyLanguage(savedLang);
 
-// --- 2. تبديل الثيم وحفظه ---
+
 document.getElementById('theme-toggle').addEventListener('click', () => {
     const newTheme = document.documentElement.classList.toggle('dark') ? 'dark' : 'light';
     localStorage.setItem('theme', newTheme);
 });
 
-// --- 3. دالة تطبيق اللغة ---
+
 function applyLanguage(lang) {
     const isAr = lang === 'ar';
     document.documentElement.dir = isAr ? 'rtl' : 'ltr';
@@ -29,32 +49,31 @@ function applyLanguage(lang) {
     fetchProjects(); 
 }
 
-// --- 4. زرار تبديل اللغة ---
+
 document.getElementById('lang-toggle').addEventListener('click', function() {
     const currentLang = localStorage.getItem('lang') === 'en' ? 'ar' : 'en';
     localStorage.setItem('lang', currentLang);
     applyLanguage(currentLang);
 });
 
-// --- 5. جلب المشاريع من الباك إند (تم حذف الكود اليدوي) ---
+
 async function fetchProjects() {
     const container = document.getElementById('projects-container');
     const isAr = document.documentElement.dir === 'rtl';
     
-    // تم حذف مصفوفة WeatherX اليدوية من هنا ليعمل الموقع ديناميكياً بالكامل
-
     try {
         const res = await fetch('/api/projects');
         if (res.ok) {
             const dbProjects = await res.json();
             
             if (dbProjects.length === 0) {
-                container.innerHTML = `<p class="text-center col-span-full text-slate-500">${isAr ? 'لا توجد مشاريع حالياً' : 'No projects found'}</p>`;
+                container.innerHTML = `<p class="text-center col-span-full text-slate-500 reveal fade-up">${isAr ? 'لا توجد مشاريع حالياً' : 'No projects found'}</p>`;
+                observeElements();
                 return;
             }
 
-            container.innerHTML = dbProjects.map(p => `
-                <div class="glass-card p-10 group hover:-translate-y-3 transition-all duration-500 flex flex-col h-full">
+            container.innerHTML = dbProjects.map((p, index) => `
+                <div class="glass-card p-10 group hover:-translate-y-3 transition-all duration-500 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
                     <div class="flex justify-between items-center mb-8">
                         <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600">
                             <i data-lucide="layout-template"></i>
@@ -72,9 +91,11 @@ async function fetchProjects() {
             `).join('');
             
             lucide.createIcons();
+            observeElements();
         }
     } catch (e) {
         console.log("Error fetching projects:", e);
-        container.innerHTML = `<p class="text-center col-span-full text-red-500">فشل تحميل المشاريع</p>`;
+        container.innerHTML = `<p class="text-center col-span-full text-red-500 reveal fade-up">فشل تحميل المشاريع</p>`;
+        observeElements();
     }
 }

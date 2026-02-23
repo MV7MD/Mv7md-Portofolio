@@ -119,7 +119,10 @@ app.post('/api/reviews', async (req, res) => {
             </div>`
         });
         res.json({ success: true });
-    } catch (error) { res.status(500).json({ success: false }); }
+    } catch (error) { 
+        console.error("❌ Email/Review Error: ", error); // تم إضافة طباعة الخطأ هنا
+        res.status(500).json({ success: false }); 
+    }
 });
 
 app.post('/api/contact', async (req, res) => {
@@ -145,7 +148,10 @@ app.post('/api/contact', async (req, res) => {
             </div>`
         });
         res.json({ success: true });
-    } catch (error) { res.status(500).json({ success: false }); }
+    } catch (error) { 
+        console.error("❌ Contact Email Error: ", error); // تم إضافة طباعة الخطأ هنا
+        res.status(500).json({ success: false }); 
+    }
 });
 
 app.post('/api/visit', async (req, res) => {

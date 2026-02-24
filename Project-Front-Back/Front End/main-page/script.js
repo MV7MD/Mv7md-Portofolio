@@ -1,370 +1,282 @@
 lucide.createIcons();
 
-const loginScreen = document.getElementById('login-screen');
-const dashboardScreen = document.getElementById('dashboard-screen');
-const loginForm = document.getElementById('loginForm');
-const loginError = document.getElementById('loginError');
+const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            scrollObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
 
-// 🌟 مصفوفة هنحفظ فيها المشاريع عشان نقرأ منها وقت التعديل 🌟
-let allProjects = [];
+function observeElements() {
+    document.querySelectorAll('.reveal:not(.active)').forEach(el => scrollObserver.observe(el));
+}
 
-function checkAuth() {
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-        loginScreen.classList.add('hidden');
-        dashboardScreen.classList.remove('hidden');
-        loadStats();
-        loadAdminProjects();
-        loadAdminReviews();
+const savedLang = localStorage.getItem('lang') || 'ar';
+if (savedLang === 'en') {
+    applyLanguage('en');
+}
+
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
+});
+
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+const mobileLinks = document.querySelectorAll('.mobile-link');
+
+function toggleMobileMenu() {
+    const isOpen = mobileMenu.classList.toggle('open');
+    const menuIcon = document.getElementById('menu-icon');
+    
+    if (isOpen) {
+        mobileMenuBtn.innerHTML = '<i data-lucide="x" class="w-5 h-5 transition-transform duration-300"></i>';
     } else {
-        loginScreen.classList.remove('hidden');
-        dashboardScreen.classList.add('hidden');
+        mobileMenuBtn.innerHTML = '<i data-lucide="menu" class="w-5 h-5 transition-transform duration-300"></i>';
+    }
+    
+    lucide.createIcons(); 
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+
+    if (isOpen) {
+        mobileLinks.forEach((link, index) => {
+            link.style.transitionDelay = `${(index + 1) * 0.1}s`;
+        });
+    } else {
+        mobileLinks.forEach(link => link.style.transitionDelay = '0s');
     }
 }
 
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const password = document.getElementById('adminPassword').value;
-    const btn = document.getElementById('loginBtn');
-    btn.innerText = 'جاري التحقق...';
+mobileMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMobileMenu();
+});
+
+document.addEventListener('click', (e) => {
+    if (mobileMenu.classList.contains('open') && !mobileMenu.contains(e.target) && e.target !== mobileMenuBtn) {
+        toggleMobileMenu();
+    }
+});
+
+mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        if(mobileMenu.classList.contains('open')) toggleMobileMenu();
+    });
+});
+
+// 🌟 دالة المشاريع المحصنة 🌟
+async function fetchProjects() {
+    const container = document.getElementById('projects-container');
+    const isAr = document.documentElement.dir === 'rtl';
 
     try {
-        const res = await fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
-        });
-        const data = await res.json();
+        const res = await fetch('/api/projects/home');
+        const dbProjects = await res.json();
 
-        if (res.ok && data.success) {
-            localStorage.setItem('adminToken', data.token); 
-            loginError.classList.add('hidden');
-            checkAuth(); 
-        } else {
-            loginError.classList.remove('hidden');
-            document.getElementById('adminPassword').value = '';
+        // حماية لو السيرفر رجع حاجة غلط
+        if (!Array.isArray(dbProjects)) throw new Error("Data error");
+
+        if (dbProjects.length === 0) {
+            container.innerHTML = `<p class="col-span-full text-center opacity-50">${isAr ? 'لا توجد مشاريع مثبتة حالياً.' : 'No pinned projects.'}</p>`;
+            observeElements(); // تأكيد تشغيل الأنيميشن
+            return;
+        }
+
+        container.innerHTML = dbProjects.map((p, index) => `
+            <div class="glass-card p-0 overflow-hidden group hover:-translate-y-3 transition-all duration-500 hover:shadow-blue-500/10 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
+                <div class="relative h-56 w-full overflow-hidden bg-slate-200 dark:bg-slate-800/50">
+                    ${p.imageUrl 
+                        ? `<img src="${p.imageUrl}" alt="Project Image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">`
+                        : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" class="w-12 h-12"></i></div>`
+                    }
+                    <div class="absolute top-4 ${isAr ? 'right-4' : 'left-4'} bg-blue-600/90 backdrop-blur text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg z-10">
+                        ${p.category || 'Web'}
+                    </div>
+                </div>
+                <div class="p-8 flex flex-col flex-grow">
+                    <h3 class="text-2xl font-black mb-4 group-hover:text-blue-500 transition-colors">${p.title || 'بدون عنوان'}</h3>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 flex-grow text-sm md:text-base leading-relaxed">
+                        ${isAr ? (p.description || p.descriptionEn || '') : (p.descriptionEn || p.description || '')}
+                    </p>
+                    <a href="${p.link || '#'}" target="_blank" class="inline-flex items-center gap-2 font-black text-sm text-blue-600 group-hover:gap-4 transition-all uppercase w-fit mt-auto">
+                        ${isAr ? 'عرض المشروع' : 'Open Project'} <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        `).join('');
+        lucide.createIcons();
+        observeElements();      
+    } catch (e) { 
+        console.log("خطأ في الاتصال بالمشاريع");
+        observeElements(); // عشان الصفحة متقفش وتكمل ظهور
+    }
+}
+
+// 🌟 دالة التقييمات المحصنة 🌟
+async function fetchRecentReviews() {
+    const container = document.getElementById('reviews-container');
+    const isAr = document.documentElement.dir === 'rtl';
+    
+    try {
+        const res = await fetch('/api/reviews/home');
+        if (!res.ok) throw new Error('Error');
+        const reviews = await res.json();
+        
+        if (!Array.isArray(reviews)) throw new Error("Data error");
+
+        if (reviews.length === 0) {
+            container.innerHTML = `<p class="col-span-full text-center opacity-50">${isAr ? 'لا توجد تقييمات مثبتة حالياً.' : 'No pinned reviews.'}</p>`;
+            observeElements();
+            return;
+        }
+
+        container.innerHTML = reviews.map((rev, index) => {
+            const starsHtml = Array(5).fill(0).map((_, i) => 
+                `<i data-lucide="star" class="w-4 h-4 ${i < rev.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-300 dark:text-slate-700'}"></i>`
+            ).join('');
+
+            return `
+            <div class="glass-card p-8 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="text-xl font-black text-blue-600">${rev.reviewerName || 'مستخدم'}</h3>
+                    <div class="flex gap-1 filter drop-shadow-[0_0_3px_rgba(250,204,21,0.5)]">${starsHtml}</div>
+                </div>
+                <p class="text-slate-600 dark:text-slate-400 italic leading-relaxed flex-grow">"${rev.message || ''}"</p>
+            </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+        observeElements(); 
+    } catch (e) { 
+        console.log("خطأ في الاتصال بالتقييمات");
+        container.innerHTML = ""; 
+        observeElements();
+    }
+}
+
+async function fetchProfilePic() {
+    try {
+        const res = await fetch('/api/profile-pic');
+        const data = await res.json();
+        if (res.ok && data.success && data.url) {
+            const profileImg = document.getElementById('profile-pic');
+            if (profileImg) {
+                profileImg.src = data.url;
+            }
         }
     } catch (error) {
-        alert("خطأ في الاتصال بالسيرفر");
-    } finally {
-        btn.innerText = 'تسجيل الدخول';
+        console.log("خطأ في جلب الصورة الشخصية");
     }
-});
-
-window.logout = function() {
-    localStorage.removeItem('adminToken'); 
-    checkAuth(); 
 }
 
-function getAuthHeaders(isFormData = false) {
-    const headers = {
-        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+function showPopup() { document.getElementById('success-popup').classList.add('popup-show'); }
+function closePopup() { document.getElementById('success-popup').classList.remove('popup-show'); }
+
+document.getElementById('contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('btn-send-message');
+    const originalBtnText = submitBtn.innerText;
+    const isAr = document.documentElement.dir === 'rtl';
+    
+    submitBtn.innerText = isAr ? 'جاري الإرسال...' : 'Sending...';
+    submitBtn.disabled = true;
+
+    const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        message: document.getElementById('message').value
     };
-    
-    if (!isFormData) {
-        headers['Content-Type'] = 'application/json';
-    }
-    return headers;
-}
-
-async function loadStats() {
-    try {
-        const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
-        const data = await res.json();
-        
-        let currentVal = 0;
-        const targetVal = data.visits;
-        const counterEl = document.getElementById('total-visits');
-        
-        if (targetVal === 0) return;
-        
-        const interval = setInterval(() => {
-            if(currentVal >= targetVal) {
-                clearInterval(interval);
-                counterEl.innerText = targetVal;
-            } else {
-                currentVal += Math.ceil(targetVal / 20);
-                if(currentVal > targetVal) currentVal = targetVal;
-                counterEl.innerText = currentVal;
-            }
-        }, 30);
-    } catch (error) { console.error("Error", error); }
-}
-
-async function loadAdminProjects() {
-    try {
-        const res = await fetch('/api/admin/projects', { headers: getAuthHeaders() });
-        if(res.status === 401) return logout(); 
-        
-        const projects = await res.json();
-        allProjects = projects; // حفظ النسخة للتعديل
-        const container = document.getElementById('admin-projects');
-        
-        container.innerHTML = projects.map(p => `
-            <div class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl flex justify-between items-center hover:bg-slate-800 transition-colors">
-                <div class="flex items-center gap-4">
-                    ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-16 h-12 object-cover rounded-lg border border-slate-600">` : `<div class="w-16 h-12 bg-slate-700 rounded-lg flex items-center justify-center text-slate-500"><i data-lucide="image" class="w-5 h-5"></i></div>`}
-                    <div>
-                        <h4 class="font-bold text-lg text-white">${p.title}</h4>
-                        <span class="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-md mt-1 inline-block">${p.category}</span>
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button type="button" onclick="openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل المشروع">
-                        <i data-lucide="edit-3" class="w-5 h-5"></i>
-                    </button>
-                    <button type="button" onclick="toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
-                        <i data-lucide="pin" class="w-5 h-5"></i>
-                    </button>
-                    <button type="button" onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف النهائي">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
-        lucide.createIcons();
-    } catch (error) { console.error("Error", error); }
-}
-
-async function loadAdminReviews() {
-    try {
-        const res = await fetch('/api/admin/reviews', { headers: getAuthHeaders() });
-        if(res.status === 401) return logout();
-
-        const reviews = await res.json();
-        const container = document.getElementById('admin-reviews');
-        
-        container.innerHTML = reviews.map(r => `
-            <div class="bg-slate-800/50 border p-5 rounded-2xl transition-colors ${r.isApproved ? 'border-emerald-500/30' : 'border-red-500/30 opacity-75'}">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h4 class="font-bold text-lg text-white">${r.reviewerName}</h4>
-                        <div class="flex text-amber-400 mt-1">
-                            ${Array(r.rating).fill('<i data-lucide="star" class="w-3.5 h-3.5 fill-current"></i>').join('')}
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="toggleApprove('${r._id}')" class="p-2 rounded-xl ${r.isApproved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="${r.isApproved ? 'إخفاء' : 'موافقة وعرض'}">
-                            <i data-lucide="${r.isApproved ? 'check-circle' : 'eye-off'}" class="w-4 h-4"></i>
-                        </button>
-                        <button type="button" onclick="toggleHome('reviews', '${r._id}')" class="p-2 rounded-xl ${r.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
-                            <i data-lucide="pin" class="w-4 h-4"></i>
-                        </button>
-                        <button type="button" onclick="deleteItem('reviews', '${r._id}')" class="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                <p class="text-slate-400 text-sm italic leading-relaxed">"${r.message}"</p>
-            </div>
-        `).join('');
-        lucide.createIcons();
-    } catch (error) { console.error("Error", error); }
-}
-
-document.getElementById('p-image').addEventListener('change', function(e) {
-    const fileNameDisplay = document.getElementById('file-name-display');
-    if (e.target.files.length > 0) {
-        fileNameDisplay.innerText = "تم اختيار: " + e.target.files[0].name;
-        fileNameDisplay.classList.add('text-emerald-400');
-    } else {
-        fileNameDisplay.innerText = "اضغط هنا لاختيار صورة للمشروع";
-        fileNameDisplay.classList.remove('text-emerald-400');
-    }
-});
-
-document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const btn = document.getElementById('btn-add-project');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'جاري الرفع... <i data-lucide="loader-2" class="w-5 h-5 inline animate-spin"></i>';
-    btn.disabled = true;
-    lucide.createIcons();
-
-    const formData = new FormData();
-    formData.append('title', document.getElementById('p-title').value);
-    formData.append('description', document.getElementById('p-descAr').value);
-    formData.append('descriptionEn', document.getElementById('p-descEn').value);
-    formData.append('link', document.getElementById('p-link').value);
-    formData.append('category', document.getElementById('p-cat').value);
-    
-    const imageFile = document.getElementById('p-image').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
 
     try {
-        const res = await fetch('/api/admin/projects', { 
-            method: 'POST', 
-            headers: getAuthHeaders(true), 
-            body: formData 
-        });
-
-        if (res.ok) {
-            e.target.reset();
-            document.getElementById('file-name-display').innerText = "اضغط هنا لاختيار صورة للمشروع";
-            document.getElementById('file-name-display').classList.remove('text-emerald-400');
-            loadAdminProjects();
-        } else {
-            alert('حدث خطأ أثناء الرفع');
-        }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('profile-image-upload').addEventListener('change', function(e) {
-    const label = document.querySelector('label[for="profile-image-upload"]');
-    if (e.target.files.length > 0) {
-        label.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> تم الاختيار: ${e.target.files[0].name.substring(0, 15)}...`;
-    } else {
-        label.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
-    }
-    lucide.createIcons();
-});
-
-document.getElementById('profilePicForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const fileInput = document.getElementById('profile-image-upload');
-    if (fileInput.files.length === 0) return alert('برجاء اختيار صورة أولاً');
-    
-    const btn = document.getElementById('btn-update-profile');
-    const originalText = btn.innerText;
-    btn.innerHTML = 'جاري الرفع... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>';
-    btn.disabled = true;
-    lucide.createIcons();
-
-    const formData = new FormData();
-    formData.append('image', fileInput.files[0]);
-
-    try {
-        const res = await fetch('/api/admin/profile-pic', {
+        const res = await fetch('/api/contact', {
             method: 'POST',
-            headers: getAuthHeaders(true), 
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
         });
-
         const data = await res.json();
         if (res.ok && data.success) {
-            alert('تم تحديث صورتك الشخصية بنجاح! 🚀');
-            fileInput.value = '';
-            document.querySelector('label[for="profile-image-upload"]').innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
-            lucide.createIcons();
+            showPopup();
+            e.target.reset();
         } else {
-            alert(data.message || 'حدث خطأ أثناء الرفع');
+             alert(isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى.' : 'An error occurred, please try again.');
         }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
+    } catch (err) { 
+        console.error('Fetch error:', err);
+        alert(isAr ? 'خطأ في الاتصال بالسيرفر' : 'Server Connection Error'); 
+    }
+    finally {
+        submitBtn.innerText = originalBtnText;
+        submitBtn.disabled = false;
     }
 });
 
-// =========================================
-// 🌟 دوال نافذة التعديل (Edit Modal) 🌟
-// =========================================
-
-window.openEditModal = function(id) {
-    const p = allProjects.find(x => x._id === id);
-    if(!p) return;
+function applyLanguage(lang) {
+    const isAr = lang === 'ar';
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+    document.getElementById('lang-toggle').innerText = isAr ? 'EN' : 'AR';
     
-    document.getElementById('edit-p-id').value = p._id;
-    document.getElementById('edit-p-title').value = p.title;
-    document.getElementById('edit-p-cat').value = p.category;
-    document.getElementById('edit-p-descAr').value = p.description;
-    document.getElementById('edit-p-descEn').value = p.descriptionEn || '';
-    document.getElementById('edit-p-link').value = p.link || '';
+    const nameEl = document.getElementById('hero-name');
+    const navProjects = document.querySelectorAll('.nav-projects');
+    const navReviews = document.querySelectorAll('.nav-reviews');
+    const navContact = document.querySelectorAll('.nav-contact');
     
-    document.getElementById('edit-file-name').innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
-    document.getElementById('edit-file-name').classList.remove('text-blue-400');
-    
-    const modal = document.getElementById('edit-modal');
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
-}
-
-window.closeEditModal = function() {
-    const modal = document.getElementById('edit-modal');
-    modal.classList.add('opacity-0');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        document.getElementById('editProjectForm').reset();
-    }, 300);
-}
-
-document.getElementById('edit-p-image').addEventListener('change', function(e) {
-    const fileNameDisplay = document.getElementById('edit-file-name');
-    if (e.target.files.length > 0) {
-        fileNameDisplay.innerText = "تم اختيار الصورة: " + e.target.files[0].name;
-        fileNameDisplay.classList.add('text-blue-400');
+    if (isAr) {
+        nameEl.innerHTML = `<span class="text-slate-900 dark:text-white">محمد</span> <span class="text-blue-500">أبوالمجد</span>`;
+        document.getElementById('projects-head').innerText = 'المشاريع';
+        document.getElementById('reviews-head').innerText = 'آراء العملاء';
+        document.getElementById('contact-head').innerText = 'ارسل لي رسالة';
+        document.getElementById('btn-all-projects').innerText = 'رؤية جميع المشاريع';
+        document.getElementById('btn-all-reviews').innerText = 'رؤية جميع التقييمات';
+        document.getElementById('btn-add-review').innerText = 'أضف تقييمك';
+        document.getElementById('btn-send-message').innerText = 'إرسال الرسالة';
+        document.getElementById('name').placeholder = 'الاسم';
+        document.getElementById('email').placeholder = 'البريد الإلكتروني';
+        document.getElementById('message').placeholder = 'رسالتك...';
+        document.getElementById('popup-head').innerText = 'تم الإرسال!';
+        document.getElementById('popup-msg').innerText = 'تم إرسال رسالتك بنجاح.';
+        document.getElementById('popup-btn').innerText = 'إغلاق';
+        navProjects.forEach(el => el.innerText = 'المشاريع');
+        navReviews.forEach(el => el.innerText = 'التقييمات');
+        navContact.forEach(el => el.innerText = 'تواصل معي');
     } else {
-        fileNameDisplay.innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
-        fileNameDisplay.classList.remove('text-blue-400');
+        nameEl.innerHTML = `<span class="text-slate-900 dark:text-white">Muhammad</span> <span class="text-blue-500">Abu El-Magd</span>`;
+        document.getElementById('projects-head').innerText = 'Projects';
+        document.getElementById('reviews-head').innerText = 'Client Reviews';
+        document.getElementById('contact-head').innerText = 'Get In Touch';
+        document.getElementById('btn-all-projects').innerText = 'View All Projects';
+        document.getElementById('btn-all-reviews').innerText = 'View All Reviews';
+        document.getElementById('btn-add-review').innerText = 'Add Review';
+        document.getElementById('btn-send-message').innerText = 'Send Message';
+        document.getElementById('name').placeholder = 'Name';
+        document.getElementById('email').placeholder = 'Email';
+        document.getElementById('message').placeholder = 'Message...';
+        document.getElementById('popup-head').innerText = 'Sent!';
+        document.getElementById('popup-msg').innerText = 'Your message has been delivered.';
+        document.getElementById('popup-btn').innerText = 'Close';
+        navProjects.forEach(el => el.innerText = 'Projects');
+        navReviews.forEach(el => el.innerText = 'Reviews');
+        navContact.forEach(el => el.innerText = 'Contact');
     }
+    fetchProjects();
+    fetchRecentReviews();
+}
+
+document.getElementById('lang-toggle').addEventListener('click', function() {
+    const newLang = document.documentElement.dir === 'rtl' ? 'en' : 'ar';
+    localStorage.setItem('lang', newLang); 
+    applyLanguage(newLang);
 });
 
-document.getElementById('editProjectForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btn-save-edit');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'جاري الحفظ... <i data-lucide="loader-2" class="w-5 h-5 inline animate-spin"></i>';
-    btn.disabled = true;
-    lucide.createIcons();
-
-    const id = document.getElementById('edit-p-id').value;
-    const formData = new FormData();
-    formData.append('title', document.getElementById('edit-p-title').value);
-    formData.append('description', document.getElementById('edit-p-descAr').value);
-    formData.append('descriptionEn', document.getElementById('edit-p-descEn').value);
-    formData.append('link', document.getElementById('edit-p-link').value);
-    formData.append('category', document.getElementById('edit-p-cat').value);
-    
-    const imageFile = document.getElementById('edit-p-image').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
+window.addEventListener('DOMContentLoaded', () => {
+    if(!sessionStorage.getItem('site_visited')) {
+        fetch('/api/visit', { method: 'POST' }).catch(err => console.log(err));
+        sessionStorage.setItem('site_visited', 'true');
     }
+    observeElements(); 
+}); 
 
-    try {
-        const res = await fetch(`/api/admin/projects/${id}`, { 
-            method: 'PUT', 
-            headers: getAuthHeaders(true), 
-            body: formData 
-        });
-
-        if (res.ok) {
-            closeEditModal();
-            loadAdminProjects(); // ريفريش للقائمة بعد التعديل
-        } else {
-            alert('حدث خطأ أثناء حفظ التعديلات');
-        }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-});
-
-// =========================================
-
-window.deleteItem = async function(type, id) {
-    if(confirm('هل أنت متأكد من الحذف النهائي؟ 🗑️')) {
-        await fetch(`/api/admin/${type}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
-        type === 'projects' ? loadAdminProjects() : loadAdminReviews();
-    }
-}
-window.toggleHome = async function(type, id) {
-    await fetch(`/api/admin/${type}/${id}/home`, { method: 'PUT', headers: getAuthHeaders() });
-    type === 'projects' ? loadAdminProjects() : loadAdminReviews();
-}
-window.toggleApprove = async function(id) {
-    await fetch(`/api/admin/reviews/${id}/approve`, { method: 'PUT', headers: getAuthHeaders() });
-    loadAdminReviews();
-}
-
-checkAuth();
+fetchProjects();
+fetchRecentReviews();
+fetchProfilePic();

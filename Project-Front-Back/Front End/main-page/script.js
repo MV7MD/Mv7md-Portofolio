@@ -149,6 +149,23 @@ async function fetchRecentReviews() {
     }
 }
 
+// 🌟 الدالة الجديدة لجلب صورتك الشخصية 🌟
+async function fetchProfilePic() {
+    try {
+        const res = await fetch('/api/profile-pic');
+        const data = await res.json();
+        if (res.ok && data.success && data.url) {
+            // استهداف الصورة في الصفحة (تأكد إن صورتك في HTML واخدة آي دي profile-pic)
+            const profileImg = document.getElementById('profile-pic');
+            if (profileImg) {
+                profileImg.src = data.url;
+            }
+        }
+    } catch (error) {
+        console.log("خطأ في جلب الصورة الشخصية:", error);
+    }
+}
+
 function showPopup() { document.getElementById('success-popup').classList.add('popup-show'); }
 function closePopup() { document.getElementById('success-popup').classList.remove('popup-show'); }
 
@@ -178,7 +195,7 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
             showPopup();
             e.target.reset();
         } else {
-             alert(isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى.' : 'An error occurred, please try again.');
+                alert(isAr ? 'حدث خطأ، يرجى المحاولة مرة أخرى.' : 'An error occurred, please try again.');
         }
     } catch (err) { 
         console.error('Fetch error:', err);
@@ -247,7 +264,6 @@ document.getElementById('lang-toggle').addEventListener('click', function() {
     applyLanguage(newLang);
 });
 
-
 window.addEventListener('DOMContentLoaded', () => {
     if(!sessionStorage.getItem('site_visited')) {
         fetch('/api/visit', { method: 'POST' }).catch(err => console.log(err));
@@ -258,3 +274,4 @@ window.addEventListener('DOMContentLoaded', () => {
 
 fetchProjects();
 fetchRecentReviews();
+fetchProfilePic(); 

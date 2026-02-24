@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000;
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-
+const Setting = require('./models/Setting');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -293,6 +293,37 @@ app.delete('/api/admin/projects/:id', verifyAdmin, async (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
+});
+
+// 🌟 API لجلب الصورة الشخصية للموقع
+app.get('/api/profile-pic', async (req, res) => {
+    try {
+        const pic = await Setting.findOne({ key: 'profile_pic' });
+        res.json({ success: true, url: pic ? pic.value : null });
+    } catch (error) {
+        res.status(500).json({ success: false });
+    }
+});
+
+
+app.post('/api/admin/profile-pic', verifyAdmin, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ success: false, message: "لم يتم رفع صورة" });
+        }
+        
+        
+        const updatedSetting = await Setting.findOneAndUpdate(
+            { key: 'profile_pic' },
+            { value: req.file.path },
+            { upsert: true, new: true }
+        );
+
+        res.json({ success: true, url: updatedSetting.value });
+    } catch (error) {
+        console.error("Error uploading profile pic:", error);
+        res.status(500).json({ success: false, message: "حدث خطأ أثناء رفع الصورة" });
+    }
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -53,7 +53,6 @@ window.logout = function() {
     checkAuth(); 
 }
 
-
 function getAuthHeaders(isFormData = false) {
     const headers = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -156,7 +155,6 @@ async function loadAdminReviews() {
     } catch (error) { console.error("Error", error); }
 }
 
-
 document.getElementById('p-image').addEventListener('change', function(e) {
     const fileNameDisplay = document.getElementById('file-name-display');
     if (e.target.files.length > 0) {
@@ -167,7 +165,6 @@ document.getElementById('p-image').addEventListener('change', function(e) {
         fileNameDisplay.classList.remove('text-emerald-400');
     }
 });
-
 
 document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -213,7 +210,6 @@ document.getElementById('addProjectForm').addEventListener('submit', async (e) =
     }
 });
 
-
 document.getElementById('profile-image-upload').addEventListener('change', function(e) {
     const label = document.querySelector('label[for="profile-image-upload"]');
     if (e.target.files.length > 0) {
@@ -224,25 +220,43 @@ document.getElementById('profile-image-upload').addEventListener('change', funct
     lucide.createIcons();
 });
 
-
+// 🌟 إرسال الصورة الشخصية للسيرفر 🌟
 document.getElementById('profilePicForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fileInput = document.getElementById('profile-image-upload');
     if (fileInput.files.length === 0) return alert('برجاء اختيار صورة أولاً');
     
     const btn = document.getElementById('btn-update-profile');
-    btn.innerText = 'جاري التحديث...';
+    const originalText = btn.innerText;
+    btn.innerHTML = 'جاري الرفع... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>';
     btn.disabled = true;
+    lucide.createIcons();
 
-    
-    setTimeout(() => {
-        alert('واجهة التحديث جاهزة! سنقوم ببرمجة الباك إند الخاص بها في الخطوة القادمة 🚀');
-        btn.innerText = 'تحديث';
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+
+    try {
+        const res = await fetch('/api/admin/profile-pic', {
+            method: 'POST',
+            headers: getAuthHeaders(true), // true عشان FormData
+            body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+            alert('تم تحديث صورتك الشخصية بنجاح! 🚀');
+            fileInput.value = '';
+            document.querySelector('label[for="profile-image-upload"]').innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
+            lucide.createIcons();
+        } else {
+            alert(data.message || 'حدث خطأ أثناء الرفع');
+        }
+    } catch (err) {
+        alert('فشل الاتصال بالسيرفر');
+    } finally {
+        btn.innerText = originalText;
         btn.disabled = false;
-        fileInput.value = '';
-        document.querySelector('label[for="profile-image-upload"]').innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
-        lucide.createIcons();
-    }, 1000);
+    }
 });
 
 window.deleteItem = async function(type, id) {

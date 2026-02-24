@@ -5,7 +5,7 @@ const dashboardScreen = document.getElementById('dashboard-screen');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
-// 🌟 مصفوفة هنحفظ فيها المشاريع عشان نقرأ منها وقت التعديل 🌟
+
 let allProjects = [];
 
 function checkAuth() {
@@ -16,6 +16,7 @@ function checkAuth() {
         loadStats();
         loadAdminProjects();
         loadAdminReviews();
+        loadAdminSkills(); 
     } else {
         loginScreen.classList.remove('hidden');
         dashboardScreen.classList.add('hidden');
@@ -97,7 +98,7 @@ async function loadAdminProjects() {
         if(res.status === 401) return logout(); 
         
         const projects = await res.json();
-        allProjects = projects; // حفظ النسخة للتعديل
+        allProjects = projects; 
         const container = document.getElementById('admin-projects');
         
         container.innerHTML = projects.map(p => `
@@ -265,9 +266,7 @@ document.getElementById('profilePicForm').addEventListener('submit', async (e) =
     }
 });
 
-// =========================================
-// 🌟 دوال نافذة التعديل (Edit Modal) 🌟
-// =========================================
+
 
 window.openEditModal = function(id) {
     const p = allProjects.find(x => x._id === id);
@@ -338,7 +337,7 @@ document.getElementById('editProjectForm').addEventListener('submit', async (e) 
 
         if (res.ok) {
             closeEditModal();
-            loadAdminProjects(); // ريفريش للقائمة بعد التعديل
+            loadAdminProjects(); 
         } else {
             alert('حدث خطأ أثناء حفظ التعديلات');
         }
@@ -350,7 +349,7 @@ document.getElementById('editProjectForm').addEventListener('submit', async (e) 
     }
 });
 
-// =========================================
+
 
 window.deleteItem = async function(type, id) {
     if(confirm('هل أنت متأكد من الحذف النهائي؟ 🗑️')) {
@@ -365,6 +364,55 @@ window.toggleHome = async function(type, id) {
 window.toggleApprove = async function(id) {
     await fetch(`/api/admin/reviews/${id}/approve`, { method: 'PUT', headers: getAuthHeaders() });
     loadAdminReviews();
+}
+
+
+
+async function loadAdminSkills() {
+    try {
+        const res = await fetch('/api/skills');
+        const skills = await res.json();
+        const container = document.getElementById('admin-skills');
+        if(!container) return; 
+        
+        container.innerHTML = skills.map(s => `
+            <div class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl text-white font-bold shadow-sm">
+                ${s.name}
+                <button type="button" onclick="event.stopPropagation(); deleteSkill('${s._id}')" class="text-red-500 hover:text-red-400 ml-2 transition-colors" title="حذف المهارة">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    } catch (e) { console.error("Error loading skills", e); }
+}
+
+const addSkillForm = document.getElementById('addSkillForm');
+if(addSkillForm) {
+    addSkillForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameInput = document.getElementById('skill-name');
+        try {
+            const res = await fetch('/api/admin/skills', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ name: nameInput.value })
+            });
+            if(res.ok) {
+                nameInput.value = '';
+                loadAdminSkills();
+            } else {
+                alert('فشل إضافة المهارة');
+            }
+        } catch (e) { alert('خطأ في الاتصال بالسيرفر'); }
+    });
+}
+
+window.deleteSkill = async function(id) {
+    if(confirm('هل أنت متأكد من حذف هذه المهارة؟ 🗑️')) {
+        await fetch(`/api/admin/skills/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+        loadAdminSkills();
+    }
 }
 
 checkAuth();

@@ -6,7 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
-
+const Skill = require('./models/Skill');
 const Project = require('./models/Project');
 const Review = require('./models/Review');
 const Visit = require('./models/Visit');
@@ -307,7 +307,7 @@ app.post('/api/admin/profile-pic', verifyAdmin, upload.single('image'), async (r
     }
 });
 
-// 🌟 مسار التعديل بعد التحصين (استخدام $set لمنع مسح الحقول الأخرى) 🌟
+
 app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         const updateFields = {
@@ -332,6 +332,24 @@ app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (r
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
+});
+
+app.get('/api/skills', async (req, res) => {
+    const skills = await Skill.find();
+    res.json(skills);
+});
+
+app.post('/api/admin/skills', verifyAdmin, async (req, res) => {
+    try {
+        const newSkill = new Skill({ name: req.body.name });
+        await newSkill.save();
+        res.json({ success: true, skill: newSkill });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+app.delete('/api/admin/skills/:id', verifyAdmin, async (req, res) => {
+    await Skill.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -55,6 +55,16 @@
                     <i data-lucide="users" class="w-8 h-8"></i>
                 </div>
             </div>
+            <div class="glass-panel border-t-4 border-t-blue-500 mb-8">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-white">
+        <i data-lucide="zap" class="text-blue-500"></i> مهاراتي (Skills)
+    </h2>
+    <form id="addSkillForm" class="flex gap-3 mb-6">
+        <input type="text" id="skill-name" class="admin-input m-0 flex-1" placeholder="مثال: Node.js" required>
+        <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-500 transition-colors">إضافة</button>
+    </form>
+    <div id="admin-skills" class="flex flex-wrap gap-3"></div>
+</div>
 
             <div class="glass-panel border-l-4 border-l-purple-500 flex flex-col justify-center">
                 <h3 class="text-slate-200 font-bold mb-3 flex items-center gap-2">

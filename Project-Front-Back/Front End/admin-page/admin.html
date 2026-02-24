@@ -28,7 +28,6 @@
     </div>
 
     <div id="dashboard-screen" class="max-w-7xl mx-auto w-full hidden pb-10">
-        
         <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 glass-panel py-4 px-8">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
@@ -40,7 +39,7 @@
                 <a href="../main-page/index.html" class="flex items-center gap-2 bg-slate-800 border border-slate-700 px-6 py-2.5 rounded-xl font-bold hover:bg-slate-700 transition-colors text-white">
                     <i data-lucide="globe" class="w-4 h-4"></i> زيارة الموقع
                 </a>
-                <button onclick="logout()" class="flex items-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 px-6 py-2.5 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all">
+                <button type="button" onclick="logout()" class="flex items-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 px-6 py-2.5 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all">
                     <i data-lucide="log-out" class="w-4 h-4"></i> خروج
                 </button>
             </div>
@@ -72,14 +71,10 @@
         </div>
 
         <div class="grid lg:grid-cols-12 gap-8">
-            
             <div class="lg:col-span-7 space-y-8">
-                
                 <div class="glass-panel border-t-4 border-t-emerald-500">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
-                            <i data-lucide="plus-circle"></i>
-                        </div>
+                        <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500"><i data-lucide="plus-circle"></i></div>
                         <h2 class="text-2xl font-black text-white">إضافة مشروع جديد</h2>
                     </div>
                     
@@ -123,11 +118,8 @@
                     <div id="admin-reviews" class="space-y-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar"></div>
                 </div>
             </div>
-
         </div>
     </div>
-
-    <script src="admin.js"></script>
 
     <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeEditModal()"></div>
@@ -160,6 +152,7 @@
             </form>
         </div>
     </div>
-    
+
+    <script src="admin.js"></script>
 </body>
 </html>

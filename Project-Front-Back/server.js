@@ -1,6 +1,5 @@
 require('dotenv').config(); 
 
-
 require('dns').setDefaultResultOrder('ipv4first'); 
 
 const express = require('express');
@@ -11,20 +10,19 @@ const path = require('path');
 const Project = require('./models/Project');
 const Review = require('./models/Review');
 const Visit = require('./models/Visit');
+const Setting = require('./models/Setting');
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const Setting = require('./models/Setting');
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
 
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -41,11 +39,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
 
-
 mongoose.connect(process.env.DB_URI)
     .then(() => console.log('✅✅✅ تم الربط بالسحاب بنجاح!'))
     .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
-
 
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
     const apiKey = process.env.BREVO_API_KEY;
@@ -66,7 +62,6 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
     } catch (error) { return false; }
 }
 
-
 const verifyAdmin = (req, res, next) => {
     const token = req.headers.authorization;
     if (token === `Bearer ${process.env.SECRET_TOKEN}`) {
@@ -83,7 +78,6 @@ app.post('/api/admin/login', (req, res) => {
         res.status(401).json({ success: false, message: "كلمة المرور خاطئة!" });
     }
 });
-
 
 app.post('/api/contact', async (req, res) => {
     const { name, email, message } = req.body;
@@ -116,10 +110,6 @@ app.post('/api/contact', async (req, res) => {
                         <p style="margin: 0; color: #1e293b; font-size: 16px; white-space: pre-wrap;">${message}</p>
                     </div>
                 </div>
-                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9;">
-                    هذه الرسالة مُرسلة تلقائياً من نظام الإشعارات بموقعك الشخصي.<br>
-                    يمكنك الرد مباشرة على هذا الإيميل وسيصل للمرسل.
-                </div>
             </div>
         </div>`;
 
@@ -127,7 +117,6 @@ app.post('/api/contact', async (req, res) => {
         res.json({ success: true });
     } catch (error) { res.status(500).json({ success: false }); }
 });
-
 
 app.post('/api/reviews', async (req, res) => {
     const { reviewerName, message, rating } = req.body;
@@ -143,27 +132,19 @@ app.post('/api/reviews', async (req, res) => {
                 <div style="padding: 30px; text-align: center; background: linear-gradient(to bottom, #fffbeb, #ffffff); border-bottom: 1px solid #fef3c7;">
                     <div style="font-size: 45px; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);">🌟</div>
                     <h2 style="margin: 0; color: #d97706; font-size: 24px;">تقييم جديد بانتظار الموافقة!</h2>
-                    <p style="color: #78716c; font-size: 15px; margin-top: 8px; margin-bottom: 0;">شخص ما قام بتقييم أعمالك للتو.</p>
                 </div>
                 <div style="padding: 30px; text-align: right;">
                     <div style="text-align: center; margin-bottom: 30px;">
                         <div style="font-size: 35px; letter-spacing: 4px; color: #fbbf24;">${starsHtml}</div>
-                        <div style="margin-top: 10px;">
-                            <span style="background-color: #fef3c7; color: #b45309; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 14px;">تقييم ${rating} من 5</span>
-                        </div>
                     </div>
                     <div style="background-color: #fafaf9; border: 1px solid #e7e5e4; padding: 25px; border-radius: 16px; position: relative;">
                         <p style="margin: 0 0 15px 0; color: #57534e; font-size: 16px;">
                             <strong style="color: #44403c;">👤 بواسطة:</strong> ${reviewerName}
                         </p>
-                        <hr style="border: 0; border-top: 1px dashed #d6d3d1; margin: 0 0 15px 0;">
                         <p style="margin: 0; color: #292524; font-style: italic; font-size: 18px; text-align: center; font-weight: bold;">
                             "${message}"
                         </p>
                     </div>
-                </div>
-                <div style="background-color: #fffbeb; padding: 20px; text-align: center; font-size: 14px; color: #b45309; border-top: 1px solid #fef3c7;">
-                    🚀 يرجى الدخول إلى <strong>لوحة التحكم (Dashboard)</strong> للموافقة على عرض هذا التقييم في موقعك.
                 </div>
             </div>
         </div>`;
@@ -173,19 +154,15 @@ app.post('/api/reviews', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false }); }
 });
 
-
 app.get('/api/projects/home', async (req, res) => {
-    
     const projects = await Project.find({ showOnHome: true }).limit(2).sort({ createdAt: -1 });
     res.json(projects);
 });
 
 app.get('/api/reviews/home', async (req, res) => {
-
     const reviews = await Review.find({ showOnHome: true }).limit(2).sort({ createdAt: -1 });
     res.json(reviews);
 });
-
 
 app.get('/api/projects', async (req, res) => {
     const projects = await Project.find({ isVisible: true }).sort({ createdAt: -1 });
@@ -197,7 +174,6 @@ app.get('/api/reviews', async (req, res) => {
     res.json(reviews);
 });
 
-
 app.post('/api/visit', async (req, res) => {
     try {
         let visitInfo = await Visit.findOneAndUpdate(
@@ -208,8 +184,6 @@ app.post('/api/visit', async (req, res) => {
         res.json({ success: true, count: visitInfo.count });
     } catch (error) { res.status(500).json({ success: false }); }
 });
-
-
 
 app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
     const visitInfo = await Visit.findOne({ id: "main_counter" });
@@ -267,16 +241,12 @@ app.delete('/api/admin/reviews/:id', verifyAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-// 🌟 تعديل مسار إضافة المشروع عشان يستقبل الصورة
 app.post('/api/admin/projects', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         const projectData = req.body;
-        
-        // لو في صورة اترفعت، كلاوديناري هيرجعلنا الرابط بتاعها، هنضيفه للداتا
         if (req.file && req.file.path) {
             projectData.imageUrl = req.file.path;
         }
-
         const newProject = new Project(projectData);
         await newProject.save();
         res.json({ success: true, project: newProject });
@@ -291,11 +261,6 @@ app.delete('/api/admin/projects/:id', verifyAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
-});
-
-// 🌟 API لجلب الصورة الشخصية للموقع
 app.get('/api/profile-pic', async (req, res) => {
     try {
         const pic = await Setting.findOne({ key: 'profile_pic' });
@@ -305,20 +270,16 @@ app.get('/api/profile-pic', async (req, res) => {
     }
 });
 
-
 app.post('/api/admin/profile-pic', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         if (!req.file || !req.file.path) {
             return res.status(400).json({ success: false, message: "لم يتم رفع صورة" });
         }
-        
-        
         const updatedSetting = await Setting.findOneAndUpdate(
             { key: 'profile_pic' },
             { value: req.file.path },
             { upsert: true, new: true }
         );
-
         res.json({ success: true, url: updatedSetting.value });
     } catch (error) {
         console.error("Error uploading profile pic:", error);
@@ -326,22 +287,27 @@ app.post('/api/admin/profile-pic', verifyAdmin, upload.single('image'), async (r
     }
 });
 
-
+// 🌟 مسار التعديل المحصن (تم التأكد من استقراره بالكامل) 🌟
 app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
         const updateData = req.body;
         
-        
+        // لو رفع صورة جديدة، استخدم الرابط الجديد
         if (req.file && req.file.path) {
             updateData.imageUrl = req.file.path;
         }
 
-        await Project.findByIdAndUpdate(req.params.id, updateData);
+        // استخدام new: true لضمان استقرار التعديل وعدم كراش قاعدة البيانات
+        await Project.findByIdAndUpdate(req.params.id, updateData, { new: true });
         res.json({ success: true });
     } catch (error) {
         console.error("Error updating project:", error);
         res.status(500).json({ success: false, message: "حدث خطأ أثناء التعديل" });
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -1,18 +1,18 @@
 lucide.createIcons();
 
-// --- 🔒 نظام تسجيل الدخول ---
+
 const loginScreen = document.getElementById('login-screen');
 const dashboardScreen = document.getElementById('dashboard-screen');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
-// التحقق هل إنت مسجل دخول قبل كده ولا لأ
+
 function checkAuth() {
     const token = localStorage.getItem('adminToken');
     if (token) {
         loginScreen.classList.add('hidden');
         dashboardScreen.classList.remove('hidden');
-        // تحميل الداتا فقط لو إنت مسجل دخول
+        
         loadStats();
         loadAdminProjects();
         loadAdminReviews();
@@ -22,7 +22,7 @@ function checkAuth() {
     }
 }
 
-// إرسال الباسورد للسيرفر
+
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const password = document.getElementById('adminPassword').value;
@@ -38,9 +38,9 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (res.ok && data.success) {
-            localStorage.setItem('adminToken', data.token); // حفظ المفتاح
+            localStorage.setItem('adminToken', data.token); 
             loginError.classList.add('hidden');
-            checkAuth(); // فتح اللوحة
+            checkAuth(); 
         } else {
             loginError.classList.remove('hidden');
             document.getElementById('adminPassword').value = '';
@@ -52,13 +52,13 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-// تسجيل الخروج
+
 window.logout = function() {
-    localStorage.removeItem('adminToken'); // مسح المفتاح
-    checkAuth(); // رجوع لشاشة اللوجين
+    localStorage.removeItem('adminToken'); 
+    checkAuth(); 
 }
 
-// دالة مساعدة عشان تبعت الـ Token مع كل طلب
+
 function getAuthHeaders() {
     return {
         'Content-Type': 'application/json',
@@ -66,9 +66,7 @@ function getAuthHeaders() {
     };
 }
 
-// ==========================================
-// 🌟 دوال جلب وعرض البيانات (المحمية) 🌟
-// ==========================================
+
 
 async function loadStats() {
     try {
@@ -96,10 +94,10 @@ async function loadStats() {
 
 async function loadAdminProjects() {
     try {
-        // لاحظ إضافة الـ Headers هنا
+        
         const res = await fetch('/api/admin/projects', { headers: getAuthHeaders() });
         
-        if(res.status === 401) return logout(); // لو المفتاح غلط اطرده
+        if(res.status === 401) return logout(); 
         
         const projects = await res.json();
         const container = document.getElementById('admin-projects');
@@ -189,5 +187,5 @@ window.toggleApprove = async function(id) {
     loadAdminReviews();
 }
 
-// البداية
+
 checkAuth();

@@ -282,6 +282,39 @@ document.getElementById('lang-toggle').addEventListener('click', function() {
     applyLanguage(newLang);
 });
 
+// 🌟 دالة تسريع وتلوين أنيميشن السوشيال ميديا 🌟
+function optimizeSocialAnimations() {
+    // تحديد جميع روابط السوشيال ميديا باستخدام جزء من الرابط
+    const socialLinks = document.querySelectorAll('a[href*="github"], a[href*="wa.me"], a[href*="whatsapp"], a[href*="mailto"], a[href*="linkedin"]');
+    
+    socialLinks.forEach(link => {
+        // إجبار العنصر على أنيميشن سريع ومباشر
+        link.style.transition = "all 0.2s ease-out";
+        
+        link.addEventListener('mouseenter', () => {
+            link.style.transform = 'translateY(-5px) scale(1.1)';
+            
+            // تحديد لون الـ Glow بناءً على الرابط
+            if(link.href.includes('github')) {
+                link.style.filter = 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.6))';
+            } else if(link.href.includes('wa.me') || link.href.includes('whatsapp')) {
+                link.style.filter = 'drop-shadow(0 0 12px rgba(34, 197, 94, 0.7))'; // أخضر واتساب
+            } else if(link.href.includes('linkedin')) {
+                link.style.filter = 'drop-shadow(0 0 12px rgba(10, 102, 194, 0.7))'; // أزرق لينكدإن
+            } else if(link.href.includes('mailto')) {
+                link.style.filter = 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.7))'; // أحمر جيميل
+            } else {
+                link.style.filter = 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.7))'; 
+            }
+        });
+        
+        link.addEventListener('mouseleave', () => {
+            link.style.transform = 'translateY(0) scale(1)';
+            link.style.filter = 'drop-shadow(0 0 0 rgba(0,0,0,0))';
+        });
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     if(!sessionStorage.getItem('site_visited')) {
         fetch('/api/visit', { method: 'POST' }).catch(err => console.log(err));
@@ -292,6 +325,8 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchProfilePic();
     fetchSkills(); 
     
+    // تشغيل أنيميشن السوشيال ميديا
+    optimizeSocialAnimations();
     
     setTimeout(() => { observeElements(); }, 100);
 });

@@ -164,7 +164,7 @@ async function fetchProfilePic() {
     }
 }
 
-
+// 🌟 تعديل مهارات (Skills): أنيميشن صاروخ ولون أهدى يوضح الكلام في الدارك مود 🌟
 async function fetchSkills() {
     const container = document.getElementById('skills-container');
     if (!container) return;
@@ -173,7 +173,7 @@ async function fetchSkills() {
         const skills = await res.json();
         if(Array.isArray(skills) && skills.length > 0) {
             container.innerHTML = skills.map((skill, index) => `
-                <span class="px-4 py-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold rounded-xl border border-blue-500/20 text-sm md:text-base cursor-default reveal zoom-in transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-blue-600 hover:text-white hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:border-blue-500" style="transition-delay: ${index * 0.1}s">
+                <span class="px-4 py-1.5 bg-blue-500/5 text-blue-500 dark:text-blue-300 font-bold rounded-xl border border-blue-500/20 text-sm md:text-base cursor-default reveal zoom-in transition-all duration-200 ease-out hover:-translate-y-1 hover:bg-blue-600 hover:text-white hover:border-blue-400 shadow-sm hover:shadow-[0_4px_12px_rgba(59,130,246,0.5)]" style="transition-delay: ${index * 0.1}s">
                     ${skill.name}
                 </span>
             `).join('');

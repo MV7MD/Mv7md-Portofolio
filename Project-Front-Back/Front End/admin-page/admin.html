@@ -128,5 +128,38 @@
     </div>
 
     <script src="admin.js"></script>
+
+    <div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center px-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeEditModal()"></div>
+        <div class="glass-panel relative w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10">
+            <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-2">
+                <i data-lucide="edit-3" class="text-blue-500"></i> تعديل المشروع
+            </h2>
+            <form id="editProjectForm" class="space-y-4">
+                <input type="hidden" id="edit-p-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="edit-p-title" class="admin-input m-0" placeholder="اسم المشروع (Title)" required>
+                    <input type="text" id="edit-p-cat" class="admin-input m-0" placeholder="القسم (مثال: Front-End)" required>
+                </div>
+                <input type="text" id="edit-p-descAr" class="admin-input m-0" placeholder="الوصف بالعربية" required>
+                <input type="text" id="edit-p-descEn" class="admin-input m-0" placeholder="الوصف بالإنجليزية" required>
+                <input type="url" id="edit-p-link" class="admin-input m-0" placeholder="رابط المشروع (URL)" required>
+                
+                <div class="border-2 border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-blue-500 transition-colors cursor-pointer relative mt-2">
+                    <input type="file" id="edit-p-image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
+                    <div class="pointer-events-none">
+                        <i data-lucide="image-plus" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
+                        <span id="edit-file-name" class="text-slate-300 font-bold">تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 mt-6">
+                    <button type="submit" id="btn-save-edit" class="flex-1 bg-blue-600 py-4 rounded-xl font-black text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">حفظ التعديلات</button>
+                    <button type="button" onclick="closeEditModal()" class="flex-1 bg-slate-700 py-4 rounded-xl font-black text-white hover:bg-slate-600 transition-all">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
 </body>
 </html>

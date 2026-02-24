@@ -5,6 +5,9 @@ const dashboardScreen = document.getElementById('dashboard-screen');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
+// 🌟 مصفوفة هنحفظ فيها المشاريع عشان نقرأ منها وقت التعديل 🌟
+let allProjects = [];
+
 function checkAuth() {
     const token = localStorage.getItem('adminToken');
     if (token) {
@@ -94,6 +97,7 @@ async function loadAdminProjects() {
         if(res.status === 401) return logout(); 
         
         const projects = await res.json();
+        allProjects = projects; // حفظ النسخة للتعديل
         const container = document.getElementById('admin-projects');
         
         container.innerHTML = projects.map(p => `
@@ -106,10 +110,13 @@ async function loadAdminProjects() {
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <button onclick="openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل المشروع">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </button>
                     <button onclick="toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
                         <i data-lucide="pin" class="w-5 h-5"></i>
                     </button>
-                    <button onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                    <button onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف النهائي">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -220,7 +227,6 @@ document.getElementById('profile-image-upload').addEventListener('change', funct
     lucide.createIcons();
 });
 
-// 🌟 إرسال الصورة الشخصية للسيرفر 🌟
 document.getElementById('profilePicForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fileInput = document.getElementById('profile-image-upload');
@@ -238,7 +244,7 @@ document.getElementById('profilePicForm').addEventListener('submit', async (e) =
     try {
         const res = await fetch('/api/admin/profile-pic', {
             method: 'POST',
-            headers: getAuthHeaders(true), // true عشان FormData
+            headers: getAuthHeaders(true), 
             body: formData
         });
 
@@ -258,6 +264,93 @@ document.getElementById('profilePicForm').addEventListener('submit', async (e) =
         btn.disabled = false;
     }
 });
+
+// =========================================
+// 🌟 دوال نافذة التعديل (Edit Modal) 🌟
+// =========================================
+
+window.openEditModal = function(id) {
+    const p = allProjects.find(x => x._id === id);
+    if(!p) return;
+    
+    document.getElementById('edit-p-id').value = p._id;
+    document.getElementById('edit-p-title').value = p.title;
+    document.getElementById('edit-p-cat').value = p.category;
+    document.getElementById('edit-p-descAr').value = p.description;
+    document.getElementById('edit-p-descEn').value = p.descriptionEn || '';
+    document.getElementById('edit-p-link').value = p.link || '';
+    
+    document.getElementById('edit-file-name').innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
+    document.getElementById('edit-file-name').classList.remove('text-blue-400');
+    
+    const modal = document.getElementById('edit-modal');
+    modal.classList.remove('hidden');
+    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+}
+
+window.closeEditModal = function() {
+    const modal = document.getElementById('edit-modal');
+    modal.classList.add('opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('editProjectForm').reset();
+    }, 300);
+}
+
+document.getElementById('edit-p-image').addEventListener('change', function(e) {
+    const fileNameDisplay = document.getElementById('edit-file-name');
+    if (e.target.files.length > 0) {
+        fileNameDisplay.innerText = "تم اختيار الصورة: " + e.target.files[0].name;
+        fileNameDisplay.classList.add('text-blue-400');
+    } else {
+        fileNameDisplay.innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
+        fileNameDisplay.classList.remove('text-blue-400');
+    }
+});
+
+document.getElementById('editProjectForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-edit');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'جاري الحفظ... <i data-lucide="loader-2" class="w-5 h-5 inline animate-spin"></i>';
+    btn.disabled = true;
+    lucide.createIcons();
+
+    const id = document.getElementById('edit-p-id').value;
+    const formData = new FormData();
+    formData.append('title', document.getElementById('edit-p-title').value);
+    formData.append('description', document.getElementById('edit-p-descAr').value);
+    formData.append('descriptionEn', document.getElementById('edit-p-descEn').value);
+    formData.append('link', document.getElementById('edit-p-link').value);
+    formData.append('category', document.getElementById('edit-p-cat').value);
+    
+    const imageFile = document.getElementById('edit-p-image').files[0];
+    if (imageFile) {
+        formData.append('image', imageFile);
+    }
+
+    try {
+        const res = await fetch(`/api/admin/projects/${id}`, { 
+            method: 'PUT', 
+            headers: getAuthHeaders(true), 
+            body: formData 
+        });
+
+        if (res.ok) {
+            closeEditModal();
+            loadAdminProjects(); // ريفريش للقائمة بعد التعديل
+        } else {
+            alert('حدث خطأ أثناء حفظ التعديلات');
+        }
+    } catch (err) {
+        alert('فشل الاتصال بالسيرفر');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+// =========================================
 
 window.deleteItem = async function(type, id) {
     if(confirm('هل أنت متأكد من الحذف النهائي؟ 🗑️')) {

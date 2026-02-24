@@ -326,4 +326,22 @@ app.post('/api/admin/profile-pic', verifyAdmin, upload.single('image'), async (r
     }
 });
 
+
+app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (req, res) => {
+    try {
+        const updateData = req.body;
+        
+        
+        if (req.file && req.file.path) {
+            updateData.imageUrl = req.file.path;
+        }
+
+        await Project.findByIdAndUpdate(req.params.id, updateData);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating project:", error);
+        res.status(500).json({ success: false, message: "حدث خطأ أثناء التعديل" });
+    }
+});
+
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

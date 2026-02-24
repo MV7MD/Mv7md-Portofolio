@@ -14,6 +14,26 @@ const Visit = require('./models/Visit');
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'portfolio_projects',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
+    }
+});
+const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(express.json());
@@ -247,10 +267,23 @@ app.delete('/api/admin/reviews/:id', verifyAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/admin/projects', verifyAdmin, async (req, res) => {
-    const newProject = new Project(req.body);
-    await newProject.save();
-    res.json({ success: true });
+// 🌟 تعديل مسار إضافة المشروع عشان يستقبل الصورة
+app.post('/api/admin/projects', verifyAdmin, upload.single('image'), async (req, res) => {
+    try {
+        const projectData = req.body;
+        
+        // لو في صورة اترفعت، كلاوديناري هيرجعلنا الرابط بتاعها، هنضيفه للداتا
+        if (req.file && req.file.path) {
+            projectData.imageUrl = req.file.path;
+        }
+
+        const newProject = new Project(projectData);
+        await newProject.save();
+        res.json({ success: true, project: newProject });
+    } catch (error) {
+        console.error("Error adding project:", error);
+        res.status(500).json({ success: false, message: "حدث خطأ أثناء إضافة المشروع" });
+    }
 });
 
 app.delete('/api/admin/projects/:id', verifyAdmin, async (req, res) => {

@@ -6,6 +6,7 @@ const projectSchema = new mongoose.Schema({
     descriptionEn: String,
     link: String,
     category: String,
+    imageUrl: String, 
     isVisible: { type: Boolean, default: true },
     showOnHome: { type: Boolean, default: false }
 }, { timestamps: true });

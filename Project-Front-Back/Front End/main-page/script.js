@@ -1,6 +1,5 @@
 lucide.createIcons();
 
-
 const scrollObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -15,7 +14,6 @@ function observeElements() {
     document.querySelectorAll('.reveal:not(.active)').forEach(el => scrollObserver.observe(el));
 }
 
-
 const savedLang = localStorage.getItem('lang') || 'ar';
 if (savedLang === 'en') {
     applyLanguage('en');
@@ -25,7 +23,6 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
     const isDark = document.documentElement.classList.toggle('dark');
     localStorage.setItem('theme', isDark ? 'dark' : 'light'); 
 });
-
 
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const mobileMenu = document.getElementById('mobile-menu');
@@ -70,7 +67,7 @@ mobileLinks.forEach(link => {
     });
 });
 
-
+// 🌟 دالة جلب المشاريع المُحدثة (تصميم الكارت الجديد مع الصورة) 🌟
 async function fetchProjects() {
     const container = document.getElementById('projects-container');
     const isAr = document.documentElement.dir === 'rtl';
@@ -85,18 +82,28 @@ async function fetchProjects() {
         }
 
         container.innerHTML = dbProjects.map((p, index) => `
-            <div class="glass-card p-10 group hover:-translate-y-3 transition-all duration-500 hover:shadow-blue-500/10 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
-                <div class="flex justify-between items-center mb-8">
-                    <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600">
-                        <i data-lucide="layout-template"></i>
+            <div class="glass-card p-0 overflow-hidden group hover:-translate-y-3 transition-all duration-500 hover:shadow-blue-500/10 flex flex-col h-full reveal fade-up" style="transition-delay: ${index * 0.1}s">
+                
+                <div class="relative h-56 w-full overflow-hidden bg-slate-200 dark:bg-slate-800/50">
+                    ${p.imageUrl 
+                        ? `<img src="${p.imageUrl}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">`
+                        : `<div class="w-full h-full flex items-center justify-center text-slate-400"><i data-lucide="image" class="w-12 h-12"></i></div>`
+                    }
+                    <div class="absolute top-4 ${isAr ? 'right-4' : 'left-4'} bg-blue-600/90 backdrop-blur text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-lg z-10">
+                        ${p.category || 'Web'}
                     </div>
-                    <span class="text-[10px] font-black tracking-widest text-blue-500 uppercase">${p.category || 'Web'}</span>
                 </div>
-                <h3 class="text-2xl font-black mb-4 group-hover:text-blue-500 transition-colors">${p.title}</h3>
-                <p class="text-slate-500 dark:text-slate-400 mb-8 flex-grow">${isAr ? (p.description || p.descriptionEn) : (p.descriptionEn || p.description)}</p>
-                <a href="${p.link || '#'}" target="_blank" class="inline-flex items-center gap-2 font-black text-sm text-blue-600 group-hover:gap-4 transition-all uppercase w-fit">
-                    ${isAr ? 'عرض المشروع' : 'Open Project'} <i data-lucide="external-link" class="w-4 h-4"></i>
-                </a>
+                
+                <div class="p-8 flex flex-col flex-grow">
+                    <h3 class="text-2xl font-black mb-4 group-hover:text-blue-500 transition-colors">${p.title}</h3>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 flex-grow text-sm md:text-base leading-relaxed">
+                        ${isAr ? (p.description || p.descriptionEn) : (p.descriptionEn || p.description)}
+                    </p>
+                    <a href="${p.link || '#'}" target="_blank" class="inline-flex items-center gap-2 font-black text-sm text-blue-600 group-hover:gap-4 transition-all uppercase w-fit mt-auto">
+                        ${isAr ? 'عرض المشروع' : 'Open Project'} <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+
             </div>
         `).join('');
         lucide.createIcons();
@@ -141,7 +148,6 @@ async function fetchRecentReviews() {
         container.innerHTML = ""; 
     }
 }
-
 
 function showPopup() { document.getElementById('success-popup').classList.add('popup-show'); }
 function closePopup() { document.getElementById('success-popup').classList.remove('popup-show'); }
@@ -248,8 +254,7 @@ window.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem('site_visited', 'true');
     }
     observeElements(); 
-});
-
+}); 
 
 fetchProjects();
 fetchRecentReviews();

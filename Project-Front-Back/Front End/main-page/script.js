@@ -5,7 +5,7 @@ const dashboardScreen = document.getElementById('dashboard-screen');
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
-// 🌟 مصفوفة هنحفظ فيها المشاريع عشان نقرأ منها وقت التعديل 🌟
+// 🌟 مصفوفة المشاريع
 let allProjects = [];
 
 function checkAuth() {
@@ -60,7 +60,6 @@ function getAuthHeaders(isFormData = false) {
     const headers = {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
     };
-    
     if (!isFormData) {
         headers['Content-Type'] = 'application/json';
     }
@@ -71,13 +70,10 @@ async function loadStats() {
     try {
         const res = await fetch('/api/admin/stats', { headers: getAuthHeaders() });
         const data = await res.json();
-        
         let currentVal = 0;
-        const targetVal = data.visits;
+        const targetVal = data.visits || 0;
         const counterEl = document.getElementById('total-visits');
-        
         if (targetVal === 0) return;
-        
         const interval = setInterval(() => {
             if(currentVal >= targetVal) {
                 clearInterval(interval);
@@ -95,11 +91,9 @@ async function loadAdminProjects() {
     try {
         const res = await fetch('/api/admin/projects', { headers: getAuthHeaders() });
         if(res.status === 401) return logout(); 
-        
         const projects = await res.json();
-        allProjects = projects; // حفظ النسخة للتعديل
+        allProjects = projects;
         const container = document.getElementById('admin-projects');
-        
         container.innerHTML = projects.map(p => `
             <div class="bg-slate-800/50 border border-slate-700/50 p-4 rounded-2xl flex justify-between items-center hover:bg-slate-800 transition-colors">
                 <div class="flex items-center gap-4">
@@ -110,13 +104,13 @@ async function loadAdminProjects() {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button type="button" onclick="openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل المشروع">
+                    <button type="button" onclick="openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل">
                         <i data-lucide="edit-3" class="w-5 h-5"></i>
                     </button>
-                    <button type="button" onclick="toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
+                    <button type="button" onclick="toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت">
                         <i data-lucide="pin" class="w-5 h-5"></i>
                     </button>
-                    <button type="button" onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف النهائي">
+                    <button type="button" onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -130,10 +124,8 @@ async function loadAdminReviews() {
     try {
         const res = await fetch('/api/admin/reviews', { headers: getAuthHeaders() });
         if(res.status === 401) return logout();
-
         const reviews = await res.json();
         const container = document.getElementById('admin-reviews');
-        
         container.innerHTML = reviews.map(r => `
             <div class="bg-slate-800/50 border p-5 rounded-2xl transition-colors ${r.isApproved ? 'border-emerald-500/30' : 'border-red-500/30 opacity-75'}">
                 <div class="flex justify-between items-start mb-3">
@@ -144,10 +136,10 @@ async function loadAdminReviews() {
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" onclick="toggleApprove('${r._id}')" class="p-2 rounded-xl ${r.isApproved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="${r.isApproved ? 'إخفاء' : 'موافقة وعرض'}">
+                        <button type="button" onclick="toggleApprove('${r._id}')" class="p-2 rounded-xl ${r.isApproved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all">
                             <i data-lucide="${r.isApproved ? 'check-circle' : 'eye-off'}" class="w-4 h-4"></i>
                         </button>
-                        <button type="button" onclick="toggleHome('reviews', '${r._id}')" class="p-2 rounded-xl ${r.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
+                        <button type="button" onclick="toggleHome('reviews', '${r._id}')" class="p-2 rounded-xl ${r.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all">
                             <i data-lucide="pin" class="w-4 h-4"></i>
                         </button>
                         <button type="button" onclick="deleteItem('reviews', '${r._id}')" class="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">
@@ -167,193 +159,106 @@ document.getElementById('p-image').addEventListener('change', function(e) {
     if (e.target.files.length > 0) {
         fileNameDisplay.innerText = "تم اختيار: " + e.target.files[0].name;
         fileNameDisplay.classList.add('text-emerald-400');
-    } else {
-        fileNameDisplay.innerText = "اضغط هنا لاختيار صورة للمشروع";
-        fileNameDisplay.classList.remove('text-emerald-400');
     }
 });
 
 document.getElementById('addProjectForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const btn = document.getElementById('btn-add-project');
     const originalText = btn.innerHTML;
     btn.innerHTML = 'جاري الرفع... <i data-lucide="loader-2" class="w-5 h-5 inline animate-spin"></i>';
     btn.disabled = true;
     lucide.createIcons();
 
-    const formData = new FormData();
-    formData.append('title', document.getElementById('p-title').value);
-    formData.append('description', document.getElementById('p-descAr').value);
-    formData.append('descriptionEn', document.getElementById('p-descEn').value);
-    formData.append('link', document.getElementById('p-link').value);
-    formData.append('category', document.getElementById('p-cat').value);
-    
+    const formData = new FormData(e.target);
     const imageFile = document.getElementById('p-image').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
+    if (imageFile) formData.append('image', imageFile);
+    // تجميع باقي الحقول يدوياً للتأكد
+    formData.set('title', document.getElementById('p-title').value);
+    formData.set('description', document.getElementById('p-descAr').value);
+    formData.set('descriptionEn', document.getElementById('p-descEn').value);
+    formData.set('link', document.getElementById('p-link').value);
+    formData.set('category', document.getElementById('p-cat').value);
 
     try {
-        const res = await fetch('/api/admin/projects', { 
-            method: 'POST', 
-            headers: getAuthHeaders(true), 
-            body: formData 
-        });
-
+        const res = await fetch('/api/admin/projects', { method: 'POST', headers: getAuthHeaders(true), body: formData });
         if (res.ok) {
             e.target.reset();
             document.getElementById('file-name-display').innerText = "اضغط هنا لاختيار صورة للمشروع";
-            document.getElementById('file-name-display').classList.remove('text-emerald-400');
             loadAdminProjects();
-        } else {
-            alert('حدث خطأ أثناء الرفع');
-        }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('profile-image-upload').addEventListener('change', function(e) {
-    const label = document.querySelector('label[for="profile-image-upload"]');
-    if (e.target.files.length > 0) {
-        label.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> تم الاختيار: ${e.target.files[0].name.substring(0, 15)}...`;
-    } else {
-        label.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
-    }
-    lucide.createIcons();
+        } else { alert('حدث خطأ أثناء الرفع'); }
+    } catch (err) { alert('فشل الاتصال بالسيرفر'); } finally { btn.innerHTML = originalText; btn.disabled = false; }
 });
 
 document.getElementById('profilePicForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fileInput = document.getElementById('profile-image-upload');
     if (fileInput.files.length === 0) return alert('برجاء اختيار صورة أولاً');
-    
     const btn = document.getElementById('btn-update-profile');
     const originalText = btn.innerText;
-    btn.innerHTML = 'جاري الرفع... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>';
+    btn.innerText = 'جاري الرفع...';
     btn.disabled = true;
-    lucide.createIcons();
 
     const formData = new FormData();
     formData.append('image', fileInput.files[0]);
 
     try {
-        const res = await fetch('/api/admin/profile-pic', {
-            method: 'POST',
-            headers: getAuthHeaders(true), 
-            body: formData
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
+        const res = await fetch('/api/admin/profile-pic', { method: 'POST', headers: getAuthHeaders(true), body: formData });
+        if (res.ok) {
             alert('تم تحديث صورتك الشخصية بنجاح! 🚀');
             fileInput.value = '';
             document.querySelector('label[for="profile-image-upload"]').innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i> اختر صورة جديدة`;
             lucide.createIcons();
-        } else {
-            alert(data.message || 'حدث خطأ أثناء الرفع');
         }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerText = originalText;
-        btn.disabled = false;
-    }
+    } catch (err) { alert('فشل الاتصال بالسيرفر'); } finally { btn.innerText = originalText; btn.disabled = false; }
 });
-
-// =========================================
-// 🌟 دوال نافذة التعديل (Edit Modal) 🌟
-// =========================================
 
 window.openEditModal = function(id) {
     const p = allProjects.find(x => x._id === id);
     if(!p) return;
-    
     document.getElementById('edit-p-id').value = p._id;
     document.getElementById('edit-p-title').value = p.title;
     document.getElementById('edit-p-cat').value = p.category;
     document.getElementById('edit-p-descAr').value = p.description;
     document.getElementById('edit-p-descEn').value = p.descriptionEn || '';
     document.getElementById('edit-p-link').value = p.link || '';
-    
-    document.getElementById('edit-file-name').innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
-    document.getElementById('edit-file-name').classList.remove('text-blue-400');
-    
-    const modal = document.getElementById('edit-modal');
-    modal.classList.remove('hidden');
-    setTimeout(() => modal.classList.remove('opacity-0'), 10);
+    document.getElementById('edit-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('edit-modal').classList.remove('opacity-0'), 10);
+    lucide.createIcons();
 }
 
 window.closeEditModal = function() {
-    const modal = document.getElementById('edit-modal');
-    modal.classList.add('opacity-0');
+    document.getElementById('edit-modal').classList.add('opacity-0');
     setTimeout(() => {
-        modal.classList.add('hidden');
+        document.getElementById('edit-modal').classList.add('hidden');
         document.getElementById('editProjectForm').reset();
     }, 300);
 }
 
-document.getElementById('edit-p-image').addEventListener('change', function(e) {
-    const fileNameDisplay = document.getElementById('edit-file-name');
-    if (e.target.files.length > 0) {
-        fileNameDisplay.innerText = "تم اختيار الصورة: " + e.target.files[0].name;
-        fileNameDisplay.classList.add('text-blue-400');
-    } else {
-        fileNameDisplay.innerText = "تغيير الصورة (اتركه فارغاً للاحتفاظ بالقديمة)";
-        fileNameDisplay.classList.remove('text-blue-400');
-    }
-});
-
 document.getElementById('editProjectForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-save-edit');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'جاري الحفظ... <i data-lucide="loader-2" class="w-5 h-5 inline animate-spin"></i>';
+    btn.innerText = 'جاري الحفظ...';
     btn.disabled = true;
-    lucide.createIcons();
 
     const id = document.getElementById('edit-p-id').value;
     const formData = new FormData();
     formData.append('title', document.getElementById('edit-p-title').value);
     formData.append('description', document.getElementById('edit-p-descAr').value);
-    formData.append('descriptionEn', document.getElementById('edit-p-descEn').value);
+    formData.set('descriptionEn', document.getElementById('edit-p-descEn').value);
     formData.append('link', document.getElementById('edit-p-link').value);
     formData.append('category', document.getElementById('edit-p-cat').value);
-    
     const imageFile = document.getElementById('edit-p-image').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
+    if (imageFile) formData.append('image', imageFile);
 
     try {
-        const res = await fetch(`/api/admin/projects/${id}`, { 
-            method: 'PUT', 
-            headers: getAuthHeaders(true), 
-            body: formData 
-        });
-
-        if (res.ok) {
-            closeEditModal();
-            loadAdminProjects(); // ريفريش للقائمة بعد التعديل
-        } else {
-            alert('حدث خطأ أثناء حفظ التعديلات');
-        }
-    } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
+        const res = await fetch(`/api/admin/projects/${id}`, { method: 'PUT', headers: getAuthHeaders(true), body: formData });
+        if (res.ok) { closeEditModal(); loadAdminProjects(); }
+    } catch (err) { alert('فشل الاتصال'); } finally { btn.innerText = 'حفظ التعديلات'; btn.disabled = false; }
 });
 
-// =========================================
-
 window.deleteItem = async function(type, id) {
-    if(confirm('هل أنت متأكد من الحذف النهائي؟ 🗑️')) {
+    if(confirm('هل أنت متأكد من الحذف؟')) {
         await fetch(`/api/admin/${type}/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
         type === 'projects' ? loadAdminProjects() : loadAdminReviews();
     }

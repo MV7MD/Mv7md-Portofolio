@@ -110,13 +110,13 @@ async function loadAdminProjects() {
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل المشروع">
+                    <button type="button" onclick="event.stopPropagation(); openEditModal('${p._id}')" class="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-600 hover:text-white transition-all shadow-sm" title="تعديل المشروع">
                         <i data-lucide="edit-3" class="w-5 h-5"></i>
                     </button>
-                    <button onclick="toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
+                    <button type="button" onclick="event.stopPropagation(); toggleHome('projects', '${p._id}')" class="p-2.5 rounded-xl ${p.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
                         <i data-lucide="pin" class="w-5 h-5"></i>
                     </button>
-                    <button onclick="deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف النهائي">
+                    <button type="button" onclick="event.stopPropagation(); deleteItem('projects', '${p._id}')" class="p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm" title="حذف النهائي">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -144,13 +144,13 @@ async function loadAdminReviews() {
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="toggleApprove('${r._id}')" class="p-2 rounded-xl ${r.isApproved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="${r.isApproved ? 'إخفاء' : 'موافقة وعرض'}">
+                        <button type="button" onclick="event.stopPropagation(); toggleApprove('${r._id}')" class="p-2 rounded-xl ${r.isApproved ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="${r.isApproved ? 'إخفاء' : 'موافقة وعرض'}">
                             <i data-lucide="${r.isApproved ? 'check-circle' : 'eye-off'}" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="toggleHome('reviews', '${r._id}')" class="p-2 rounded-xl ${r.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
+                        <button type="button" onclick="event.stopPropagation(); toggleHome('reviews', '${r._id}')" class="p-2 rounded-xl ${r.showOnHome ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'bg-slate-700 text-slate-400'} hover:opacity-80 transition-all" title="تثبيت في الرئيسية">
                             <i data-lucide="pin" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="deleteItem('reviews', '${r._id}')" class="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">
+                        <button type="button" onclick="event.stopPropagation(); deleteItem('reviews', '${r._id}')" class="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>

@@ -172,9 +172,8 @@ async function fetchSkills() {
         const res = await fetch('/api/skills');
         const skills = await res.json();
         if(Array.isArray(skills) && skills.length > 0) {
-            
             container.innerHTML = skills.map(skill => `
-                <span class="px-4 py-1.5 bg-blue-500/5 text-blue-600 dark:text-blue-300 font-bold rounded-xl border border-blue-500/20 text-sm md:text-base cursor-default reveal zoom-in transition-all duration-200 ease-out hover:-translate-y-1 hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-200 hover:border-blue-400 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)]">
+                <span class="px-4 py-1.5 bg-blue-500/5 text-blue-600 dark:text-blue-300 font-bold rounded-xl border border-blue-500/20 text-sm md:text-base cursor-default reveal zoom-in transition-all duration-200 ease-out hover:-translate-y-1 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-200 shadow-sm hover:shadow-[0_4px_12px_rgba(59,130,246,0.3)]">
                     ${skill.name}
                 </span>
             `).join('');
@@ -182,6 +181,39 @@ async function fetchSkills() {
         }
     } catch (e) {
         console.log("خطأ في جلب المهارات");
+    }
+}
+
+
+async function fetchExperiences() {
+    const container = document.getElementById('experiences-container');
+    if (!container) return;
+    try {
+        const res = await fetch('/api/experiences');
+        const experiences = await res.json();
+        
+        if(Array.isArray(experiences) && experiences.length > 0) {
+            container.innerHTML = experiences.map(exp => {
+                const hasDesc = exp.description && exp.description.trim() !== '';
+                
+                return `
+                <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 transition-all duration-200 ease-out hover:-translate-y-1 hover:bg-emerald-500/10 hover:shadow-[0_4px_15px_rgba(16,185,129,0.2)] hover:border-emerald-400 flex flex-col justify-center reveal zoom-in">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500 shrink-0">
+                            <i data-lucide="briefcase" class="w-4 h-4"></i>
+                        </div>
+                        <h4 class="text-emerald-700 dark:text-emerald-300 font-bold text-base leading-tight">${exp.title}</h4>
+                    </div>
+                    ${hasDesc ? `<p class="mt-3 text-sm text-slate-600 dark:text-slate-400 leading-relaxed md:pl-11">${exp.description}</p>` : ''}
+                </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+            observeElements();
+        }
+    } catch (e) {
+        console.log("خطأ في جلب الخبرات");
     }
 }
 
@@ -321,6 +353,7 @@ window.addEventListener('DOMContentLoaded', () => {
     fetchRecentReviews();
     fetchProfilePic();
     fetchSkills(); 
+    fetchExperiences();
     
     optimizeSocialAnimations();
     

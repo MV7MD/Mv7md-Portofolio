@@ -11,7 +11,7 @@ const Project = require('./models/Project');
 const Review = require('./models/Review');
 const Visit = require('./models/Visit');
 const Setting = require('./models/Setting');
-
+const Experience = require('./models/Experience');
 const app = express();
 const PORT = process.env.PORT || 3000; 
 const { v2: cloudinary } = require('cloudinary');
@@ -349,6 +349,27 @@ app.post('/api/admin/skills', verifyAdmin, async (req, res) => {
 
 app.delete('/api/admin/skills/:id', verifyAdmin, async (req, res) => {
     await Skill.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+});
+// --- 🌟 مسارات الخبرات (Experiences) 🌟 ---
+app.get('/api/experiences', async (req, res) => {
+    const experiences = await Experience.find();
+    res.json(experiences);
+});
+
+app.post('/api/admin/experiences', verifyAdmin, async (req, res) => {
+    try {
+        const newExp = new Experience({
+            title: req.body.title,
+            description: req.body.description || '' 
+        });
+        await newExp.save();
+        res.json({ success: true, experience: newExp });
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+app.delete('/api/admin/experiences/:id', verifyAdmin, async (req, res) => {
+    await Experience.findByIdAndDelete(req.params.id);
     res.json({ success: true });
 });
 

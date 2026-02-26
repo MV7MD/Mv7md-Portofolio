@@ -17,6 +17,7 @@ function checkAuth() {
         loadAdminProjects();
         loadAdminReviews();
         loadAdminSkills(); 
+        loadAdminExperiences(); // 🌟 تم إضافة استدعاء الخبرات هنا
     } else {
         loginScreen.classList.remove('hidden');
         dashboardScreen.classList.add('hidden');
@@ -412,6 +413,64 @@ window.deleteSkill = async function(id) {
     if(confirm('هل أنت متأكد من حذف هذه المهارة؟ 🗑️')) {
         await fetch(`/api/admin/skills/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
         loadAdminSkills();
+    }
+}
+
+
+async function loadAdminExperiences() {
+    try {
+        const res = await fetch('/api/experiences');
+        const experiences = await res.json();
+        const container = document.getElementById('admin-experiences');
+        if(!container) return; 
+        
+        container.innerHTML = experiences.map(e => `
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl text-white shadow-sm flex justify-between items-start">
+                <div>
+                    <h4 class="font-bold text-emerald-400 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> ${e.title}</h4>
+                    ${e.description ? `<p class="text-sm text-slate-400 mt-2">${e.description}</p>` : `<span class="text-xs text-slate-500 mt-1 inline-block">(بدون شرح)</span>`}
+                </div>
+                <button type="button" onclick="deleteExperience('${e._id}')" class="text-red-500 hover:text-red-400 bg-red-500/10 p-2 rounded-lg transition-colors shrink-0" title="حذف التجربة">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    } catch (e) { console.error("Error loading experiences", e); }
+}
+
+const addExperienceForm = document.getElementById('addExperienceForm');
+if(addExperienceForm) {
+    addExperienceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titleInput = document.getElementById('exp-title');
+        const descInput = document.getElementById('exp-desc');
+        
+        const btn = addExperienceForm.querySelector('button[type="submit"]');
+        btn.innerText = 'جاري الإضافة...';
+        
+        try {
+            const res = await fetch('/api/admin/experiences', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ title: titleInput.value, description: descInput.value })
+            });
+            if(res.ok) {
+                titleInput.value = '';
+                descInput.value = '';
+                loadAdminExperiences();
+            } else {
+                alert('فشل إضافة التجربة');
+            }
+        } catch (e) { alert('خطأ في الاتصال بالسيرفر'); }
+        finally { btn.innerText = 'إضافة التجربة'; }
+    });
+}
+
+window.deleteExperience = async function(id) {
+    if(confirm('هل أنت متأكد من حذف هذه التجربة؟ 🗑️')) {
+        await fetch(`/api/admin/experiences/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+        loadAdminExperiences();
     }
 }
 

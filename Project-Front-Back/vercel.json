@@ -7,20 +7,9 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "Project-Front-Back/server.js"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "Project-Front-Back/server.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "Project-Front-Back/server.js"
-    }
+    { "src": "/api/(.*)", "dest": "Project-Front-Back/server.js" },
+    { "src": "/dashboard", "dest": "Project-Front-Back/server.js" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "Project-Front-Back/server.js" }
   ]
 }

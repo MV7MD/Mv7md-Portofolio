@@ -12,11 +12,15 @@
       "dest": "server.js"
     },
     {
-      "src": "/admin",
+      "src": "/dashboard",
       "dest": "server.js"
     },
     {
       "handle": "filesystem"
+    },
+    {
+      "src": "/",
+      "dest": "server.js"
     },
     {
       "src": "/(.*)",

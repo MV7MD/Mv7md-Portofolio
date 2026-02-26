@@ -36,8 +36,10 @@ const upload = multer({ storage: storage });
 app.use(cors());
 app.use(express.json());
 
+// --- 🌟 إعداد الملفات الثابتة لضمان عمل الروابط على Vercel 🌟 ---
 app.use(express.static(path.join(__dirname, 'Front End')));
 app.use(express.static(path.join(__dirname, 'Front End', 'main-page')));
+app.use(express.static(path.join(__dirname, 'Front End', 'admin-page')));
 
 
 mongoose.connect(process.env.DB_URI)
@@ -45,7 +47,7 @@ mongoose.connect(process.env.DB_URI)
     .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
 
 
-// --- 🌟 دالة الإرسال الجديدة والمحسنة لبيئة Vercel 🌟 ---
+// --- 🌟 دالة الإرسال المحسنة لبيئة Vercel 🌟 ---
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
     const apiKey = process.env.BREVO_API_KEY; 
     
@@ -357,8 +359,14 @@ app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (r
     }
 });
 
+// المسار الافتراضي لفتح الصفحة الرئيسية
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
+});
+
+// مسار صريح لصفحة الأدمن
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Front End', 'admin-page', 'admin.html'));
 });
 
 app.get('/api/skills', async (req, res) => {

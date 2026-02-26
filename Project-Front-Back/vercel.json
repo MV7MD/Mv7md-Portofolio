@@ -2,29 +2,25 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "Project-Front-Back/server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server.js"
+      "dest": "Project-Front-Back/server.js"
     },
     {
       "src": "/dashboard",
-      "dest": "server.js"
+      "dest": "Project-Front-Back/server.js"
     },
     {
       "handle": "filesystem"
     },
     {
-      "src": "/",
-      "dest": "server.js"
-    },
-    {
       "src": "/(.*)",
-      "dest": "server.js"
+      "dest": "Project-Front-Back/server.js"
     }
   ]
 }

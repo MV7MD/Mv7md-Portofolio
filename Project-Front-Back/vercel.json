@@ -8,18 +8,23 @@
   ],
   "routes": [
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "/server.js"
+      "dest": "server.js"
     },
     {
       "src": "/admin-page/(.*)",
       "dest": "/Front End/admin-page/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
+      "dest": "/Front End/main-page/$1",
+      "continue": true
+    },
+    {
+      "src": "/",
       "dest": "/Front End/main-page/index.html"
     }
   ]

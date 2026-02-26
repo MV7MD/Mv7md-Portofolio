@@ -11,8 +11,16 @@
       "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
+      "src": "/api/(.*)",
       "dest": "/server.js"
+    },
+    {
+      "src": "/admin-page/(.*)",
+      "dest": "/Front End/admin-page/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Front End/main-page/index.html"
     }
   ]
 }

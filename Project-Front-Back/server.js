@@ -359,6 +359,16 @@ app.put('/api/admin/projects/:id', verifyAdmin, upload.single('image'), async (r
     }
 });
 
+// المسار الافتراضي لفتح الصفحة الرئيسية
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
+});
+
+// مسار صريح لصفحة الأدمن
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Front End', 'admin-page', 'admin.html'));
+});
+
 app.get('/api/skills', async (req, res) => {
     const skills = await Skill.find();
     res.json(skills);
@@ -396,23 +406,6 @@ app.post('/api/admin/experiences', verifyAdmin, async (req, res) => {
 app.delete('/api/admin/experiences/:id', verifyAdmin, async (req, res) => {
     await Experience.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-});
-
-// --- 🌟 الجزء المعدل لحل مشكلة الـ 404 واللينك المختصر 🌟 ---
-
-// 1. مسار صريح للأدمن
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Front End', 'admin-page', 'admin.html'));
-});
-
-// 2. مسار صريح لصفحة البداية (index)
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
-});
-
-// 3. مسار "Catch-all" لأي طلب غير معروف لفتحه كـ Home Page
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Front End', 'main-page', 'index.html'));
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

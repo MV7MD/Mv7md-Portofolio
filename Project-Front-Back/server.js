@@ -45,8 +45,15 @@ mongoose.connect(process.env.DB_URI)
     .catch((err) => console.error('❌ فشل الاتصال بالسحاب:', err.message));
 
 
+// --- 🌟 دالة الإرسال الجديدة والمحسنة لبيئة Vercel 🌟 ---
 async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
-    const apiKey = process.env.BREVO_API_KEY;
+    const apiKey = process.env.BREVO_API_KEY; 
+    
+    if (!apiKey) {
+        console.error("❌ خطأ: مفتاح BREVO_API_KEY غير موجود!");
+        return false;
+    }
+
     try {
         const body = {
             sender: { name: "Muhammad Portfolio", email: "mv7mdvboelmaged@gmail.com" },
@@ -54,14 +61,34 @@ async function sendEmailViaBrevo(subject, htmlContent, replyTo = null) {
             subject: subject,
             htmlContent: htmlContent
         };
+        
         if (replyTo) { body.replyTo = { email: replyTo }; }
+
+        console.log("⏳ محاولة إرسال الإيميل عبر Brevo...");
+
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {
             method: 'POST',
-            headers: { 'accept': 'application/json', 'api-key': apiKey, 'content-type': 'application/json' },
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'api-key': apiKey.trim()
+            },
             body: JSON.stringify(body)
         });
-        return response.ok;
-    } catch (error) { return false; }
+
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log("✅ تم إرسال الإيميل بنجاح!", result);
+            return true;
+        } else {
+            console.error("❌ فشل إرسال الإيميل. رد Brevo:", result);
+            return false;
+        }
+    } catch (error) {
+        console.error("❌ حدث خطأ مفاجئ أثناء الإرسال:", error.message);
+        return false;
+    }
 }
 
 

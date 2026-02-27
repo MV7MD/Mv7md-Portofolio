@@ -17,7 +17,7 @@ function checkAuth() {
         loadAdminProjects();
         loadAdminReviews();
         loadAdminSkills(); 
-        loadAdminExperiences(); // 🌟 تم إضافة استدعاء الخبرات هنا
+        loadAdminExperiences();
     } else {
         loginScreen.classList.remove('hidden');
         dashboardScreen.classList.add('hidden');

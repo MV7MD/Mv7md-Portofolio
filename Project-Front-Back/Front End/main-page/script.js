@@ -1,5 +1,3 @@
-lucide.createIcons();
-
 const scrollObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -345,10 +343,14 @@ function optimizeSocialAnimations() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    // تشغيل الأيقونات الثابتة فوراً بعد تحميل الـ DOM
+    lucide.createIcons();
+
     if(!sessionStorage.getItem('site_visited')) {
         fetch('/api/visit', { method: 'POST' }).catch(err => console.log(err));
         sessionStorage.setItem('site_visited', 'true');
     }
+    
     fetchProjects();
     fetchRecentReviews();
     fetchProfilePic();
